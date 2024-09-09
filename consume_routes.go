@@ -1,19 +1,17 @@
 package main
 
 import (
+	"errors"
     "encoding/json"
-    "fmt"
     "io"
     "net/http"
-    "os"
 )
 
-func conPost(w http.ResponseWriter, r *http.Request) {
+func parseRequest(w http.ResponseWriter, r *http.Request) (string, string, string, error) {
 	body, err := io.ReadAll(r.Body)
 	
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
-		return
+		return "", "", "", err
 	}
 
 	defer r.Body.Close()
@@ -22,74 +20,165 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 
 	err = json.Unmarshal(body, &data)
     if err != nil {
-        http.Error(w, "Failed to parse JSON", http.StatusBadRequest)
-        return
+		return "", "", "", err
     }
 
-    for key, value := range data {
-        valueStr, err := json.Marshal(value)
-        if err != nil {
-            http.Error(w, "Failed to convert value to JSON", http.StatusInternalServerError)
-            return
-        }
+	if len(data) == 1 {
+		// Access the first key-value pair (manually in this case, as Go doesn't provide a direct way to access the first element in a map).
+		for key, value := range data {
+			context := r.PathValue("id") // Assuming you're extracting the 'id' from the URL query parameters
 
-		filename := key+".data"
-
-		_, err = os.Stat(filename)
-
-		if err != nil {
-			err = os.WriteFile(filename, valueStr, 0666)
-			if err != nil {
-				http.Error(w, "Failed to write file", http.StatusInternalServerError)
-				return
+			// Assert that `value` is of type `string`. You can also handle other types based on your input.
+			valueStr, ok := value.(string)
+			if !ok {
+				return "", "", "", errors.New("Value is not a string")
 			}
+			return context, key, valueStr, nil
 		}
+	}
+	return "", "", "", errors.New("JSON body must have 1 key-value pair")
+}
+
+func conPost(w http.ResponseWriter, r *http.Request) {
+	context, key, value, err := parseRequest(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Connect to SQLite
+	db, err := connectSQLite() // For SQLite
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer db.Close()
+	 
+	context, key, value, err = createEntry(db, context, key, value)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+    // Create a response for success
+    successResponse := map[string]string{
+        "context": context,
+        "key": key,
+		"value": value,
     }
+
+    // Set header and return success response as JSON
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(successResponse)
+    return
 }
 
 func conPut(w http.ResponseWriter, r *http.Request) {
-	body, err := io.ReadAll(r.Body)
-	
+	context, key, value, err := parseRequest(w, r)
 	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	defer r.Body.Close()
+	// Connect to SQLite
+	db, err := connectSQLite() // For SQLite
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer db.Close()
+	 
+	context, key, value, err = updateEntry(db, context, key, value)
 
-    var data map[string]interface{}
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
-	err = json.Unmarshal(body, &data)
-    if err != nil {
-        http.Error(w, "Failed to parse JSON", http.StatusBadRequest)
-        return
+    // Create a response for success
+    successResponse := map[string]string{
+        "context": context,
+        "key": key,
+		"value": value,
     }
 
-    for key, value := range data {
-        valueStr, err := json.Marshal(value)
-        if err != nil {
-            http.Error(w, "Failed to convert value to JSON", http.StatusInternalServerError)
-            return
-        }
-
-		filename := key+".data"
-
-		_, err = os.Stat(filename)
-
-		if err == nil {
-			err = os.WriteFile(filename, valueStr, 0666)
-			if err != nil {
-				http.Error(w, "Failed to write file", http.StatusInternalServerError)
-				return
-			}
-		}
-    }
+    // Set header and return success response as JSON
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusCreated)
+    json.NewEncoder(w).Encode(successResponse)
+    return
 }
 
 func conGet(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, r.PathValue("id"), "get")
+	context, key, value, err := parseRequest(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Connect to SQLite
+	db, err := connectSQLite() // For SQLite
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer db.Close()
+	
+	context, key, value, err = getEntry(db, context, value)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+    // Create a response for success
+    successResponse := map[string]string{
+        "context": context,
+        "key": key,
+		"value": value,
+    }
+
+    // Set header and return success response as JSON
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(successResponse)
+    return
 }
 
 func conDelete(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, r.PathValue("id"), "delete")
+	context, key, value, err := parseRequest(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Connect to SQLite
+	db, err := connectSQLite() // For SQLite
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer db.Close()
+	
+	err = deleteEntry(db, context, value)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+    // Create a response for success
+    successResponse := map[string]string{
+        "context": context,
+        "key": key,
+		"value": "",
+    }
+
+    // Set header and return success response as JSON
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    json.NewEncoder(w).Encode(successResponse)
+    return
 }

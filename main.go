@@ -6,7 +6,16 @@ import (
 )
 
 func main() {
-    http.HandleFunc("/adm", adm)
+	// Connect to SQLite
+	db, err := connectSQLite() // For SQLite
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer db.Close()
+
+	// Create Table
+	createTable(db)
+
     http.HandleFunc("POST /con/{id}", conPost)
     http.HandleFunc("PUT /con/{id}", conPut)
     http.HandleFunc("GET /con/{id}", conGet)
