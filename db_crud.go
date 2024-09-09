@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"database/sql"
 	"fmt"
 	"log"
@@ -72,9 +73,13 @@ func getEntries(db *sql.DB, context string) {
 
 func updateEntry(db *sql.DB, context string, key string, value string) (string, string, string, error) {
 	updateEntrySQL := `UPDATE entry SET value = ? WHERE context = ? AND key = ?`
-	_, err := db.Exec(updateEntrySQL, value, context, key)
+	result, err := db.Exec(updateEntrySQL, value, context, key)
 	if err != nil {
 		return "", "", "", err
+	}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return "", "", "", errors.New("Key-value pair doesn't exists.")
 	}
 	return context, key, value, nil
 }
@@ -84,6 +89,10 @@ func deleteEntry(db *sql.DB, context string, key string) error {
 	_, err := db.Exec(deleteEntrySQL, context, key)
 	if err != nil {
 		return err
+	}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return "", "", "", errors.New("Key-value pair doesn't exists.")
 	}
 	return nil
 }
