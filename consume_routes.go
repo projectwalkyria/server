@@ -106,7 +106,7 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 
     // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated)
+    w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(successResponse)
     return
 }
@@ -125,7 +125,7 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
-	
+
 	context, key, value, err = getEntry(db, context, value)
 
 	if err != nil {
@@ -144,7 +144,7 @@ func conGet(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(successResponse)
-    return
+	return
 }
 
 func conDelete(w http.ResponseWriter, r *http.Request) {

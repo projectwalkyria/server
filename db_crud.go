@@ -86,13 +86,13 @@ func updateEntry(db *sql.DB, context string, key string, value string) (string, 
 
 func deleteEntry(db *sql.DB, context string, key string) error {
 	deleteEntrySQL := `DELETE FROM entry WHERE context = ? AND key = ?`
-	_, err := db.Exec(deleteEntrySQL, context, key)
+	result, err := db.Exec(deleteEntrySQL, context, key)
 	if err != nil {
 		return err
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return "", "", "", errors.New("Key-value pair doesn't exists.")
+		return errors.New("Key-value pair doesn't exists.")
 	}
 	return nil
 }
