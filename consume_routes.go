@@ -7,7 +7,7 @@ import (
     "net/http"
 )
 
-func parseRequest(w http.ResponseWriter, r *http.Request) (string, string, string, error) {
+func parseConRequest(w http.ResponseWriter, r *http.Request) (string, string, string, error) {
 	body, err := io.ReadAll(r.Body)
 	
 	if err != nil {
@@ -40,7 +40,7 @@ func parseRequest(w http.ResponseWriter, r *http.Request) (string, string, strin
 }
 
 func conPost(w http.ResponseWriter, r *http.Request) {
-	context, key, value, err := parseRequest(w, r)
+	context, key, value, err := parseConRequest(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -53,7 +53,14 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
-	 
+	
+	context, err = getContext(db, context)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	context, key, value, err = createEntry(db, context, key, value)
 
 	if err != nil {
@@ -76,7 +83,7 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func conPut(w http.ResponseWriter, r *http.Request) {
-	context, key, value, err := parseRequest(w, r)
+	context, key, value, err := parseConRequest(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -88,8 +95,15 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer db.Close()
-	 
+	defer db.Close()	
+
+	context, err = getContext(db, context)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	context, key, value, err = updateEntry(db, context, key, value)
 
 	if err != nil {
@@ -112,7 +126,7 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 }
 
 func conGet(w http.ResponseWriter, r *http.Request) {
-	context, key, value, err := parseRequest(w, r)
+	context, key, value, err := parseConRequest(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -125,6 +139,14 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
+	
+	context, err = getContext(db, context)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 
 	context, key, value, err = getEntry(db, context, value)
 
@@ -148,7 +170,7 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func conDelete(w http.ResponseWriter, r *http.Request) {
-	context, key, value, err := parseRequest(w, r)
+	context, key, value, err := parseConRequest(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -161,6 +183,13 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
+	
+	context, err = getContext(db, context)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	
 	err = deleteEntry(db, context, value)
 

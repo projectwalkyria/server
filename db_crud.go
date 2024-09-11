@@ -17,7 +17,7 @@ func connectSQLite() (*sql.DB, error) {
 	return db, nil
 }
 
-func createTable(db *sql.DB) {
+func createEntryTable(db *sql.DB) {
 	createTableSQL := `CREATE TABLE IF NOT EXISTS entry (
 		context TEXT,
 		key TEXT,
@@ -30,7 +30,20 @@ func createTable(db *sql.DB) {
 		log.Fatal(err)
 	}
 
-	fmt.Println("Table created successfully!")
+	fmt.Println("Table entry created successfully!")
+}
+
+func createContextTable(db *sql.DB) {
+	createTableSQL := `CREATE TABLE IF NOT EXISTS context (
+		name TEXT UNIQUE
+	);`
+
+	_, err := db.Exec(createTableSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Table context created successfully!")
 }
 
 func createEntry(db *sql.DB, context string, key string, value string) (string, string, string, error) {	
@@ -51,24 +64,20 @@ func getEntry(db *sql.DB, context string, key string) (string, string, string, e
 	defer rows.Close()
 	
 	var value string
+	var found bool
 	for rows.Next() {
-		rows.Scan(&context, &key, &value)
+		err := rows.Scan(&context, &key, &value)
+		if err != nil {
+			return "", "", "", err
+		}
+		found = true
 	}
+
+	if !found {
+		return "", "", "", fmt.Errorf("no entry found for key: %s in context: %s", key, context)
+	}
+	
 	return context, key, value, nil
-}
-
-func getEntries(db *sql.DB, context string) {
-	rows, err := db.Query("SELECT context, key, value FROM entry WHERE context = ?", context)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer rows.Close()
-
-	for rows.Next() {
-		var context, key, value string
-		rows.Scan(&context, &key, &value)
-		fmt.Printf("entry: %s, %s, %s\n", context, key, value)
-	}
 }
 
 func updateEntry(db *sql.DB, context string, key string, value string) (string, string, string, error) {
@@ -93,6 +102,53 @@ func deleteEntry(db *sql.DB, context string, key string) error {
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
 		return errors.New("Key-value pair doesn't exists.")
+	}
+	return nil
+}
+
+func createContext(db *sql.DB, name string) (string, error) {	
+	insertContextSQL := `INSERT INTO context (name) VALUES (?)`
+	_, err := db.Exec(insertContextSQL, name)
+	if err != nil {
+		return "", err
+	}
+	return name, nil
+}
+
+
+func getContext(db *sql.DB, name string) (string, error) {
+	rows, err := db.Query("SELECT name FROM context WHERE name = ?", name)
+	if err != nil {
+		return "", err
+	}
+	defer rows.Close()
+	
+	var value string
+	var found bool
+	for rows.Next() {
+		err := rows.Scan(&value)
+		if err != nil {
+			return "", err
+		}
+		found = true
+	}
+
+	if !found {
+		return "", fmt.Errorf("no context : %s", name)
+	}
+
+	return value, nil
+}
+
+func deleteContext(db *sql.DB, name string) error {
+	deleteContextSQL := `DELETE FROM context WHERE name = ?`
+	result, err := db.Exec(deleteContextSQL, name)
+	if err != nil {
+		return err
+	}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return errors.New("Context doesn't exists.")
 	}
 	return nil
 }
