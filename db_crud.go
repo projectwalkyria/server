@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	_ "github.com/mattn/go-sqlite3"
+    "github.com/google/uuid"
 )
 
 // SQLite connection
@@ -44,6 +45,35 @@ func createContextTable(db *sql.DB) {
 	}
 
 	fmt.Println("Table context created successfully!")
+}
+
+func createTokenTable(db *sql.DB) {
+	createTableSQL := `CREATE TABLE IF NOT EXISTS token (
+		token TEXT UNIQUE
+	);`
+
+	_, err := db.Exec(createTableSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Table token created successfully!")
+}
+
+func createPermissionTable(db *sql.DB) {
+	createTableSQL := `CREATE TABLE IF NOT EXISTS permission (
+		token TEXT,
+		permission TEXT,
+		context TEXT,
+		UNIQUE (token, permission, context)
+	);`
+
+	_, err := db.Exec(createTableSQL)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Table permission created successfully!")
 }
 
 func createEntry(db *sql.DB, context string, key string, value string) (string, string, string, error) {	
@@ -149,6 +179,76 @@ func deleteContext(db *sql.DB, name string) error {
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
 		return errors.New("Context doesn't exists.")
+	}
+	return nil
+}
+
+
+func createToken(db *sql.DB) (string, error) {
+	newUUID := uuid.New().String()
+	insertTokenSQL := `INSERT INTO token (token) VALUES (?)`
+	_, err := db.Exec(insertTokenSQL, newUUID)
+	if err != nil {
+		return "", err
+	}
+	return newUUID, nil
+}
+
+func getPermission(db *sql.DB, token string, context string, reqType string) error {
+	rows, err := db.Query("SELECT token FROM permission WHERE token = ? AND context = ? AND permission = ?", token, context, reqType)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	
+	var value string
+	var found bool
+	for rows.Next() {
+		err := rows.Scan(&value)
+		if err != nil {
+			return err
+		}
+		found = true
+	}
+
+	if !found {
+		return errors.New("not authorized")
+	}
+
+	return nil
+}
+
+func deleteToken(db *sql.DB, token string) error {
+	deleteTokenSQL := `DELETE FROM token WHERE token = ?`
+	result, err := db.Exec(deleteTokenSQL, token)
+	if err != nil {
+		return err
+	}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return errors.New("Token doesn't exists.")
+	}
+	return nil
+}
+
+func grantTokenPermission(db *sql.DB, token string, permission string, context string) (string, string, string, error) {
+	insertPermissionSQL := `INSERT INTO permission (token, permission, context) VALUES (?, ?, ?)`
+	_, err := db.Exec(insertPermissionSQL, token, permission, context)
+	if err != nil {
+		return "", "", "", err
+	}
+	return token, permission, context, nil
+}
+
+func rovokeTokenPermission(db *sql.DB, token string, permission string, context string) (error) {
+	deletePermissionSQL := `DELETE FROM permission WHERE token = ? AND permission = ? AND context = ?`
+	result, err := db.Exec(deletePermissionSQL, token, permission, context)
+	if err != nil {
+		return err
+	}
+	rowsAffected, _ := result.RowsAffected()
+	if rowsAffected == 0 {
+		return errors.New("Token doesn't exists.")
 	}
 	return nil
 }

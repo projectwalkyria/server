@@ -5,7 +5,26 @@ import (
     "encoding/json"
     "io"
     "net/http"
+	"strings"
 )
+
+func getHeaderAuthToken(w http.ResponseWriter, r *http.Request) (string, error) {
+	// Extract Bearer Token
+	authHeader := r.Header.Get("Authorization")
+	if authHeader == "" {
+		return "", errors.New("Authorization header missing")
+	}
+
+	// Split the "Bearer <token>" part
+	tokenParts := strings.Split(authHeader, " ")
+
+	if len(tokenParts) != 2 || strings.ToLower(tokenParts[0]) != "bearer" {
+		return "", errors.New("Invalid Authorization header format")
+	}
+
+	// The actual token is the second part
+	return tokenParts[1], nil
+}
 
 func parseConRequest(w http.ResponseWriter, r *http.Request) (string, string, string, error) {
 	body, err := io.ReadAll(r.Body)
@@ -41,10 +60,8 @@ func parseConRequest(w http.ResponseWriter, r *http.Request) (string, string, st
 
 func conPost(w http.ResponseWriter, r *http.Request) {
 	context, key, value, err := parseConRequest(w, r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+
+
 
 	// Connect to SQLite
 	db, err := connectSQLite() // For SQLite
@@ -53,7 +70,19 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
-	
+
+	authToken, err := getHeaderAuthToken(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = getPermission(db, authToken, context, "POST")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	context, err = getContext(db, context)
 
 	if err != nil {
@@ -96,6 +125,18 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()	
+
+	authToken, err := getHeaderAuthToken(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = getPermission(db, authToken, context, "PUT")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
 	context, err = getContext(db, context)
 
@@ -140,6 +181,18 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 	
+	authToken, err := getHeaderAuthToken(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = getPermission(db, authToken, context, "GET")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	context, err = getContext(db, context)
 
 	if err != nil {
@@ -184,6 +237,18 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 	
+	authToken, err := getHeaderAuthToken(w, r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = getPermission(db, authToken, context, "DELETE")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	context, err = getContext(db, context)
 
 	if err != nil {

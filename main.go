@@ -16,6 +16,8 @@ func main() {
 
 	createEntryTable(db)
 	createContextTable(db)
+	createTokenTable(db)
+	createPermissionTable(db)
 	
 	http.HandleFunc("POST /con/{id}", conPost)
 	http.HandleFunc("PUT /con/{id}", conPut)
@@ -25,6 +27,12 @@ func main() {
 	http.HandleFunc("POST /adm/context", admContextPost)
 	http.HandleFunc("GET /adm/context", admContextGet)
 	http.HandleFunc("DELETE /adm/context", admContextDelete)
+
+	http.HandleFunc("POST /adm/token", admTokenPost)
+	http.HandleFunc("DELETE /adm/token", admTokenDelete)
+
+	http.HandleFunc("POST /adm/token/grant", admTokenGrant)
+	http.HandleFunc("DELETE /adm/token/revoke", admTokenRevoke)
 
 	log.Fatal(http.ListenAndServe(":53072", nil))
 }
