@@ -195,15 +195,9 @@ func admContextDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Create a response for success
-    successResponse := map[string]string{
-        "context": "",
-    }
-
     // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(successResponse)
     return
 }
 
@@ -258,15 +252,9 @@ func admTokenDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Create a response for success
-    successResponse := map[string]string{
-        "token": "",
-    }
-
     // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(successResponse)
     return
 }
 
