@@ -61,8 +61,6 @@ func parseConRequest(w http.ResponseWriter, r *http.Request) (string, string, st
 func conPost(w http.ResponseWriter, r *http.Request) {
 	context, key, value, err := parseConRequest(w, r)
 
-
-
 	// Connect to SQLite
 	db, err := connectSQLite() // For SQLite
 	if err != nil {

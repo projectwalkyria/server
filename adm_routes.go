@@ -105,6 +105,27 @@ func parseAdmTokenGrantRequest(w http.ResponseWriter, r *http.Request) (string, 
 	return token, grant, context, nil
 }
 
+func validateGrant(grant string) error {
+	allowedGrants := []string{"PUT", "POST", "GET", "DELETE"}
+	
+	// Variable to track if the value is found
+	found := false
+
+	// Iterate over the slice to check for the value
+	for _, item := range allowedGrants {
+		if item == grant {
+			found = true
+			break
+		}
+	}
+
+	// Check if the value was not found
+	if !found {
+		return errors.New("Grant " + grant + " is not a valid permission.")
+	}
+	return nil
+}
+
 func admContextPost(w http.ResponseWriter, r *http.Request) {
 	context, err := parseAdmContextRequest(w, r)
 	if err != nil {
@@ -281,6 +302,14 @@ func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 	}
 
 	token, grant, context, err = grantTokenPermission(db, token, grant, context)
+
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = validateGrant()
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
