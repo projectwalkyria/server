@@ -252,3 +252,58 @@ func rovokeTokenPermission(db *sql.DB, token string, permission string, context 
 	}
 	return nil
 }
+
+func createAdmToken(db *sql.DB) error {
+	err := admTokenExists(db)
+	if err != nil {
+		token, err := createToken(db)
+		if err != nil {
+			return err
+		}
+
+		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_CREATE", "ALL")
+		if err != nil {
+			return err
+		}
+		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_DELETE", "ALL")
+		
+		if err != nil {
+			return err
+		}
+		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_GRANT", "ALL")
+		
+		if err != nil {
+			return err
+		}
+		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_REVOKE", "ALL")
+		
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func admTokenExists(db *sql.DB) error {
+	rows, err := db.Query("SELECT token FROM permission WHERE permission = 'ADM_TOKEN%'")
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+	
+	var value string
+	var found bool
+	for rows.Next() {
+		err := rows.Scan(&value)
+		if err != nil {
+			return err
+		}
+		found = true
+	}
+
+	if !found {
+		return errors.New("Adm token does not exists.")
+	}
+
+	return nil
+}

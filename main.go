@@ -18,6 +18,7 @@ func main() {
 	createContextTable(db)
 	createTokenTable(db)
 	createPermissionTable(db)
+	createAdmToken(db)
 	
 	http.HandleFunc("POST /con/{id}", conPost)
 	http.HandleFunc("PUT /con/{id}", conPut)

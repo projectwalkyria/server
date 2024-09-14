@@ -221,7 +221,7 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func conDelete(w http.ResponseWriter, r *http.Request) {
-	context, key, value, err := parseConRequest(w, r)
+	context, _, key, err := parseConRequest(w, r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -254,7 +254,7 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	
-	err = deleteEntry(db, context, value)
+	err = deleteEntry(db, context, key)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
