@@ -24,19 +24,19 @@ func main() {
 
 	token, _ = createAdmToken(db)
 
-	fmt.Printf("Master adm token : " + token)
+	fmt.Println("Master adm token : " + token)
 
 	http.HandleFunc("POST /con/{id}", conPost)
 	http.HandleFunc("PUT /con/{id}", conPut)
 	http.HandleFunc("GET /con/{id}", conGet)
 	http.HandleFunc("DELETE /con/{id}", conDelete)
 
+	http.HandleFunc("POST /adm/token", admTokenPost)
+	http.HandleFunc("DELETE /adm/token", admTokenDelete)
+
 	http.HandleFunc("POST /adm/context", admContextPost)
 	http.HandleFunc("GET /adm/context", admContextGet)
 	http.HandleFunc("DELETE /adm/context", admContextDelete)
-
-	http.HandleFunc("POST /adm/token", admTokenPost)
-	http.HandleFunc("DELETE /adm/token", admTokenDelete)
 
 	http.HandleFunc("POST /adm/token/grant", admTokenGrant)
 	http.HandleFunc("DELETE /adm/token/revoke", admTokenRevoke)

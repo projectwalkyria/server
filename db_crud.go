@@ -193,19 +193,16 @@ func createToken(db *sql.DB) (string, error) {
 }
 
 func getPermission(db *sql.DB, token string, context string, reqType string) error {
-	rows, err := db.Query("SELECT token FROM permission WHERE token = ? AND context = ? AND permission = ?", token, context, reqType)
+	rows, err := db.Query(
+		"SELECT token FROM permission WHERE token = ? AND context = ? AND permission = ?;",
+		token, context, reqType)
 	if err != nil {
 		return err
 	}
 	defer rows.Close()
 
-	var value string
 	var found bool
 	for rows.Next() {
-		err := rows.Scan(&value)
-		if err != nil {
-			return err
-		}
 		found = true
 	}
 
@@ -217,11 +214,19 @@ func getPermission(db *sql.DB, token string, context string, reqType string) err
 }
 
 func deleteToken(db *sql.DB, token string) error {
-	deleteTokenSQL := `DELETE FROM token WHERE token = ?`
-	result, err := db.Exec(deleteTokenSQL, token)
+	deleteTokenPermissionsSQL := `DELETE FROM permission WHERE token = ?`
+	_, err := db.Exec(deleteTokenPermissionsSQL, token)
 	if err != nil {
 		return err
 	}
+
+	var result sql.Result
+	deleteTokenSQL := `DELETE FROM token WHERE token = ?`
+	result, err = db.Exec(deleteTokenSQL, token)
+	if err != nil {
+		return err
+	}
+
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
 		return errors.New("token doesn't exists")
@@ -255,13 +260,13 @@ func createAdmToken(db *sql.DB) (string, error) {
 	var token string
 	var found bool
 	token, found, _ = admTokenExists(db)
-	
+
 	if !found {
 		token, err := createToken(db)
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_CREATE", "ALL")
+		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_POST", "ALL")
 		if err != nil {
 			return "", err
 		}
@@ -277,7 +282,7 @@ func createAdmToken(db *sql.DB) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_CREATE", "ALL")
+		token, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_POST", "ALL")
 		if err != nil {
 			return "", err
 		}
