@@ -8,25 +8,25 @@ import (
 	"strings"
 )
 
-func getHeaderAuthToken(w http.ResponseWriter, r *http.Request) (string, error) {
+func getHeaderAuthToken(r *http.Request) (string, error) {
 	// Extract Bearer Token
 	authHeader := r.Header.Get("Authorization")
 	if authHeader == "" {
-		return "", errors.New("Authorization header missing")
+		return "", errors.New("authorization header missing")
 	}
 
 	// Split the "Bearer <token>" part
 	tokenParts := strings.Split(authHeader, " ")
 
 	if len(tokenParts) != 2 || strings.ToLower(tokenParts[0]) != "bearer" {
-		return "", errors.New("Invalid Authorization header format")
+		return "", errors.New("invalid Authorization header format")
 	}
 
 	// The actual token is the second part
 	return tokenParts[1], nil
 }
 
-func parseConRequest(w http.ResponseWriter, r *http.Request) (string, string, string, error) {
+func parseConRequest(r *http.Request) (string, string, string, error) {
 	body, err := io.ReadAll(r.Body)
 	
 	if err != nil {
@@ -50,7 +50,7 @@ func parseConRequest(w http.ResponseWriter, r *http.Request) (string, string, st
 			// Assert that `value` is of type `string`. You can also handle other types based on your input.
 			valueStr, ok := value.(string)
 			if !ok {
-				return "", "", "", errors.New("Value is not a string")
+				return "", "", "", errors.New("value is not a string")
 			}
 			return context, key, valueStr, nil
 		}
@@ -59,7 +59,11 @@ func parseConRequest(w http.ResponseWriter, r *http.Request) (string, string, st
 }
 
 func conPost(w http.ResponseWriter, r *http.Request) {
-	context, key, value, err := parseConRequest(w, r)
+	context, key, value, err := parseConRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	// Connect to SQLite
 	db, err := connectSQLite() // For SQLite
@@ -69,7 +73,7 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	authToken, err := getHeaderAuthToken(w, r)
+	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -106,11 +110,11 @@ func conPost(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(successResponse)
-    return
+
 }
 
 func conPut(w http.ResponseWriter, r *http.Request) {
-	context, key, value, err := parseConRequest(w, r)
+	context, key, value, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -124,7 +128,7 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()	
 
-	authToken, err := getHeaderAuthToken(w, r)
+	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -161,11 +165,11 @@ func conPut(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(successResponse)
-    return
+
 }
 
 func conGet(w http.ResponseWriter, r *http.Request) {
-	context, key, value, err := parseConRequest(w, r)
+	context, _, value, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -179,7 +183,7 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 	
-	authToken, err := getHeaderAuthToken(w, r)
+	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -198,7 +202,7 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
+	var key string
 	context, key, value, err = getEntry(db, context, value)
 
 	if err != nil {
@@ -217,11 +221,11 @@ func conGet(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(successResponse)
-	return
+
 }
 
 func conDelete(w http.ResponseWriter, r *http.Request) {
-	context, _, key, err := parseConRequest(w, r)
+	context, _, key, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -235,7 +239,7 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 	
-	authToken, err := getHeaderAuthToken(w, r)
+	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -264,5 +268,5 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
     // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
-    return
+
 }

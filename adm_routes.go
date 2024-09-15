@@ -7,7 +7,7 @@ import (
     "net/http"
 )
 
-func parseAdmContextRequest(w http.ResponseWriter, r *http.Request) (string, error) {
+func parseAdmContextRequest(r *http.Request) (string, error) {
 	body, err := io.ReadAll(r.Body)
 	
 	if err != nil {
@@ -29,7 +29,7 @@ func parseAdmContextRequest(w http.ResponseWriter, r *http.Request) (string, err
 			// Assert that `value` is of type `string`. You can also handle other types based on your input.
 			valueStr, ok := value.(string)
 			if !ok {
-				return "", errors.New("Value is not a string")
+				return "", errors.New("value is not a string")
 			}
 			return valueStr, nil
 		}
@@ -37,7 +37,7 @@ func parseAdmContextRequest(w http.ResponseWriter, r *http.Request) (string, err
 	return "", errors.New("JSON body must have 1 key-value pair")
 }
 
-func parseAdmTokenRequest(w http.ResponseWriter, r *http.Request) (string, error) {
+func parseAdmTokenRequest(r *http.Request) (string, error) {
 	body, err := io.ReadAll(r.Body)
 	
 	if err != nil {
@@ -59,7 +59,7 @@ func parseAdmTokenRequest(w http.ResponseWriter, r *http.Request) (string, error
 			// Assert that `value` is of type `string`. You can also handle other types based on your input.
 			valueStr, ok := value.(string)
 			if !ok {
-				return "", errors.New("Value is not a string")
+				return "", errors.New("value is not a string")
 			}
 			return valueStr, nil
 		}
@@ -67,7 +67,7 @@ func parseAdmTokenRequest(w http.ResponseWriter, r *http.Request) (string, error
 	return "", errors.New("JSON body must have 1 key-value pair")
 }
 
-func parseAdmTokenGrantRequest(w http.ResponseWriter, r *http.Request) (string, string, string, error) {
+func parseAdmTokenGrantRequest(r *http.Request) (string, string, string, error) {
 	body, err := io.ReadAll(r.Body)
 	
 	if err != nil {
@@ -127,14 +127,14 @@ func validateGrant(grant string) error {
 }
 
 func admContextPost(w http.ResponseWriter, r *http.Request) {
-	context, err := parseAdmContextRequest(w, r)
+	context, err := parseAdmContextRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	if len(context) < 8 {
-		http.Error(w, errors.New("A context must to have at least 8 letters.").Error(), http.StatusBadRequest)
+		http.Error(w, errors.New("a context must to have at least 8 letters").Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -163,11 +163,11 @@ func admContextPost(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(successResponse)
-    return
+
 }
 
 func admContextGet(w http.ResponseWriter, r *http.Request) {
-	context, err := parseAdmContextRequest(w, r)
+	context, err := parseAdmContextRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -197,11 +197,11 @@ func admContextGet(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(successResponse)
-	return
+
 }
 
 func admContextDelete(w http.ResponseWriter, r *http.Request) {
-	context, err := parseAdmContextRequest(w, r)
+	context, err := parseAdmContextRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -225,7 +225,7 @@ func admContextDelete(w http.ResponseWriter, r *http.Request) {
     // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
-    return
+
 }
 
 func admTokenPost(w http.ResponseWriter, r *http.Request) {
@@ -237,7 +237,7 @@ func admTokenPost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 	
-	authToken, err := getHeaderAuthToken(w, r)
+	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -266,11 +266,11 @@ func admTokenPost(w http.ResponseWriter, r *http.Request) {
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(successResponse)
-    return
+
 }
 
 func admTokenDelete(w http.ResponseWriter, r *http.Request) {
-	token, err := parseAdmTokenRequest(w, r)
+	token, err := parseAdmTokenRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -284,7 +284,7 @@ func admTokenDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	authToken, err := getHeaderAuthToken(w, r)
+	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -306,17 +306,17 @@ func admTokenDelete(w http.ResponseWriter, r *http.Request) {
     // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
-    return
+
 }
 
 func admTokenGrant(w http.ResponseWriter, r *http.Request) {
-	token, grant, context, err := parseAdmTokenGrantRequest(w, r)
+	token, grant, context, err := parseAdmTokenGrantRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	authToken, err := getHeaderAuthToken(w, r)
+	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -369,11 +369,11 @@ func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(successResponse)
-	return
+
 }
 
 func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
-	token, grant, context, err := parseAdmTokenGrantRequest(w, r)
+	token, grant, context, err := parseAdmTokenGrantRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -387,7 +387,7 @@ func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	authToken, err := getHeaderAuthToken(w, r)
+	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -416,5 +416,5 @@ func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
 	// Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
-    return
+
 }

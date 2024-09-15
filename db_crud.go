@@ -118,7 +118,7 @@ func updateEntry(db *sql.DB, context string, key string, value string) (string, 
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return "", "", "", errors.New("Key-value pair doesn't exists.")
+		return "", "", "", errors.New("key-value pair doesn't exists")
 	}
 	return context, key, value, nil
 }
@@ -131,7 +131,7 @@ func deleteEntry(db *sql.DB, context string, key string) error {
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return errors.New("Key-value pair doesn't exists.")
+		return errors.New("key-value pair doesn't exists")
 	}
 	return nil
 }
@@ -177,7 +177,7 @@ func deleteContext(db *sql.DB, name string) error {
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return errors.New("Context doesn't exists.")
+		return errors.New("context doesn't exists")
 	}
 	return nil
 }
@@ -224,7 +224,7 @@ func deleteToken(db *sql.DB, token string) error {
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return errors.New("Token doesn't exists.")
+		return errors.New("token doesn't exists")
 	}
 	return nil
 }
@@ -246,7 +246,7 @@ func rovokeTokenPermission(db *sql.DB, token string, permission string, context 
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
-		return errors.New("Token doesn't exists.")
+		return errors.New("token doesn't exists")
 	}
 	return nil
 }
@@ -298,7 +298,7 @@ func admTokenExists(db *sql.DB) (string, bool, error) {
 		found = true
 	}
 	if !found {
-		return "", false, errors.New("Adm token does not exists.")
+		return "", false, errors.New("adm token does not exists")
 	}
 	return value, found, nil
 }
