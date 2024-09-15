@@ -22,7 +22,7 @@ func main() {
 
 	var token string
 
-	token, err = createAdmToken(db)
+	token, _ = createAdmToken(db)
 
 	fmt.Printf("Master adm token : " + token)
 
