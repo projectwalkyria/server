@@ -138,9 +138,7 @@ func admContextPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	db, err := connectSQLite() 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -154,12 +152,10 @@ func admContextPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Create a response for success
     successResponse := map[string]string{
         "context": context,
     }
 
-    // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(successResponse)
@@ -173,8 +169,7 @@ func admContextGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	db, err := connectSQLite() 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -188,12 +183,10 @@ func admContextGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Create a response for success
     successResponse := map[string]string{
         "context": context,
     }
 
-    // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
     json.NewEncoder(w).Encode(successResponse)
@@ -207,8 +200,7 @@ func admContextDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	db, err := connectSQLite() 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -222,26 +214,24 @@ func admContextDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
 
 }
 
-func admTokenPost(w http.ResponseWriter, r *http.Request) {
- 	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-	defer db.Close()
-	
+func admTokenPost(w http.ResponseWriter, r *http.Request) {	
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+
+	db, err := connectSQLite() 
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+	defer db.Close()
 
 	err = getPermission(db, authToken, "ALL", "ADM_TOKEN_CREATE")
 	if err != nil {
@@ -257,12 +247,10 @@ func admTokenPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Create a response for success
     successResponse := map[string]string{
         "token": token,
     }
 
-    // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusCreated)
     json.NewEncoder(w).Encode(successResponse)
@@ -270,25 +258,24 @@ func admTokenPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func admTokenDelete(w http.ResponseWriter, r *http.Request) {
+	authToken, err := getHeaderAuthToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	token, err := parseAdmTokenRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	db, err := connectSQLite() 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer db.Close()
-
-	authToken, err := getHeaderAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
 	err = getPermission(db, authToken, "ALL", "ADM_TOKEN_DELETE")
 	if err != nil {
@@ -303,40 +290,36 @@ func admTokenDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
 
 }
 
 func admTokenGrant(w http.ResponseWriter, r *http.Request) {
-	token, grant, context, err := parseAdmTokenGrantRequest(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = validateGrant(grant)
-
+	token, grant, context, err := parseAdmTokenGrantRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	err = validateGrant(grant)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	db, err := connectSQLite() 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer db.Close()
-
+	
 	err = getPermission(db, authToken, context, "ADM_TOKEN_GRANT")
 	if err != nil {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
@@ -358,14 +341,12 @@ func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Create a response for success
 	successResponse := map[string]string{
 		"token": token,
 		"permission": grant,
 		"context": context,
 	}
 
-	// Set header and return success response as JSON
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(successResponse)
@@ -379,8 +360,7 @@ func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	db, err := connectSQLite() 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -413,7 +393,6 @@ func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set header and return success response as JSON
     w.Header().Set("Content-Type", "application/json")
     w.WriteHeader(http.StatusOK)
 

@@ -1,10 +1,10 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
-    "encoding/json"
-    "io"
-    "net/http"
+	"io"
+	"net/http"
 	"strings"
 )
 
@@ -28,19 +28,19 @@ func getHeaderAuthToken(r *http.Request) (string, error) {
 
 func parseConRequest(r *http.Request) (string, string, string, error) {
 	body, err := io.ReadAll(r.Body)
-	
+
 	if err != nil {
 		return "", "", "", err
 	}
 
 	defer r.Body.Close()
 
-    var data map[string]interface{}
+	var data map[string]interface{}
 
 	err = json.Unmarshal(body, &data)
-    if err != nil {
+	if err != nil {
 		return "", "", "", err
-    }
+	}
 
 	if len(data) == 1 {
 		// Access the first key-value pair (manually in this case, as Go doesn't provide a direct way to access the first element in a map).
@@ -59,25 +59,24 @@ func parseConRequest(r *http.Request) (string, string, string, error) {
 }
 
 func conPost(w http.ResponseWriter, r *http.Request) {
+	authToken, err := getHeaderAuthToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	context, key, value, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	db, err := connectSQLite()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer db.Close()
-
-	authToken, err := getHeaderAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
 	err = getPermission(db, authToken, context, "POST")
 	if err != nil {
@@ -99,40 +98,38 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Create a response for success
-    successResponse := map[string]string{
-        "context": context,
-        "key": key,
-		"value": value,
-    }
+	// Create a response for success
+	successResponse := map[string]string{
+		"context": context,
+		"key":     key,
+		"value":   value,
+	}
 
-    // Set header and return success response as JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusCreated)
-    json.NewEncoder(w).Encode(successResponse)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(successResponse)
 
 }
 
 func conPut(w http.ResponseWriter, r *http.Request) {
+	authToken, err := getHeaderAuthToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	context, key, value, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	db, err := connectSQLite()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer db.Close()	
-
-	authToken, err := getHeaderAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	defer db.Close()
 
 	err = getPermission(db, authToken, context, "PUT")
 	if err != nil {
@@ -154,40 +151,38 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Create a response for success
-    successResponse := map[string]string{
-        "context": context,
-        "key": key,
-		"value": value,
-    }
+	// Create a response for success
+	successResponse := map[string]string{
+		"context": context,
+		"key":     key,
+		"value":   value,
+	}
 
-    // Set header and return success response as JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(successResponse)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(successResponse)
 
 }
 
 func conGet(w http.ResponseWriter, r *http.Request) {
+	authToken, err := getHeaderAuthToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	context, _, value, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	db, err := connectSQLite()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer db.Close()
-	
-	authToken, err := getHeaderAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
 	err = getPermission(db, authToken, context, "GET")
 	if err != nil {
@@ -210,40 +205,38 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Create a response for success
-    successResponse := map[string]string{
-        "context": context,
-        "key": key,
-		"value": value,
-    }
+	// Create a response for success
+	successResponse := map[string]string{
+		"context": context,
+		"key":     key,
+		"value":   value,
+	}
 
-    // Set header and return success response as JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusOK)
-    json.NewEncoder(w).Encode(successResponse)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(successResponse)
 
 }
 
 func conDelete(w http.ResponseWriter, r *http.Request) {
+	authToken, err := getHeaderAuthToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	context, _, key, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Connect to SQLite
-	db, err := connectSQLite() // For SQLite
+	db, err := connectSQLite()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 	defer db.Close()
-	
-	authToken, err := getHeaderAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
 	err = getPermission(db, authToken, context, "DELETE")
 	if err != nil {
@@ -257,7 +250,7 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	
+
 	err = deleteEntry(db, context, key)
 
 	if err != nil {
@@ -265,8 +258,7 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-    // Set header and return success response as JSON
-    w.Header().Set("Content-Type", "application/json")
-    w.WriteHeader(http.StatusOK)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
 
 }
