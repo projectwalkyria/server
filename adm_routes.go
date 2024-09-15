@@ -127,14 +127,15 @@ func validateGrant(grant string) error {
 }
 
 func admContextPost(w http.ResponseWriter, r *http.Request) {
-	context, err := parseAdmContextRequest(r)
+	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	if len(context) < 8 {
-		http.Error(w, errors.New("a context must to have at least 8 letters").Error(), http.StatusBadRequest)
+	context, err := parseAdmContextRequest(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -144,7 +145,18 @@ func admContextPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
-	 
+
+	err = getPermission(db, authToken, "ALL", "ADM_CONTEXT_GET")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	if len(context) < 8 {
+		http.Error(w, errors.New("a context must to have at least 8 letters").Error(), http.StatusBadRequest)
+		return
+	}
+
 	context, err = createContext(db, context)
 
 	if err != nil {
@@ -163,6 +175,12 @@ func admContextPost(w http.ResponseWriter, r *http.Request) {
 }
 
 func admContextGet(w http.ResponseWriter, r *http.Request) {
+	authToken, err := getHeaderAuthToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	context, err := parseAdmContextRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -175,6 +193,12 @@ func admContextGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
+
+	err = getPermission(db, authToken, "ALL", "ADM_CONTEXT_GET")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
 
 	context, err = getContext(db, context)
 
@@ -194,6 +218,12 @@ func admContextGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func admContextDelete(w http.ResponseWriter, r *http.Request) {
+	authToken, err := getHeaderAuthToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	context, err := parseAdmContextRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -206,7 +236,13 @@ func admContextDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
-	
+
+	err = getPermission(db, authToken, "ALL", "ADM_CONTEXT_DELETE")
+	if err != nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
 	err = deleteContext(db, context)
 
 	if err != nil {
@@ -354,6 +390,12 @@ func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 }
 
 func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
+	authToken, err := getHeaderAuthToken(r)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	token, grant, context, err := parseAdmTokenGrantRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -366,12 +408,6 @@ func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	defer db.Close()
-
-	authToken, err := getHeaderAuthToken(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
 
 	err = getPermission(db, authToken, context, "ADM_TOKEN_REVOKE")
 	if err != nil {

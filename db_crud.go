@@ -277,6 +277,18 @@ func createAdmToken(db *sql.DB) (string, error) {
 		if err != nil {
 			return "", err
 		}
+		token, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_CREATE", "ALL")
+		if err != nil {
+			return "", err
+		}
+		token, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_GET", "ALL")
+		if err != nil {
+			return "", err
+		}
+		token, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_DELETE", "ALL")
+		if err != nil {
+			return "", err
+		}
 		return token, err
 	}
 	return token, nil
