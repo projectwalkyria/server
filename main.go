@@ -1,8 +1,9 @@
 package main
 
 import (
-    "log"
-    "net/http"
+	"fmt"
+	"log"
+	"net/http"
 )
 
 func main() {
@@ -18,8 +19,13 @@ func main() {
 	createContextTable(db)
 	createTokenTable(db)
 	createPermissionTable(db)
-	createAdmToken(db)
-	
+
+	var token string
+
+	token, err = createAdmToken(db)
+
+	fmt.Printf("Master adm token : " + token)
+
 	http.HandleFunc("POST /con/{id}", conPost)
 	http.HandleFunc("PUT /con/{id}", conPut)
 	http.HandleFunc("GET /con/{id}", conGet)
@@ -36,4 +42,5 @@ func main() {
 	http.HandleFunc("DELETE /adm/token/revoke", admTokenRevoke)
 
 	log.Fatal(http.ListenAndServe(":53072", nil))
+
 }

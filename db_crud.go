@@ -1,12 +1,13 @@
 package main
 
 import (
-	"errors"
 	"database/sql"
+	"errors"
 	"fmt"
 	"log"
+
+	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
-    "github.com/google/uuid"
 )
 
 // SQLite connection
@@ -76,7 +77,7 @@ func createPermissionTable(db *sql.DB) {
 	fmt.Println("Table permission created successfully!")
 }
 
-func createEntry(db *sql.DB, context string, key string, value string) (string, string, string, error) {	
+func createEntry(db *sql.DB, context string, key string, value string) (string, string, string, error) {
 	insertEntrySQL := `INSERT INTO entry(key, value, context) VALUES (?, ?, ?)`
 	_, err := db.Exec(insertEntrySQL, key, value, context)
 	if err != nil {
@@ -85,14 +86,13 @@ func createEntry(db *sql.DB, context string, key string, value string) (string, 
 	return context, key, value, nil
 }
 
-
 func getEntry(db *sql.DB, context string, key string) (string, string, string, error) {
 	rows, err := db.Query("SELECT context, key, value FROM entry WHERE key = ? AND context = ?", key, context)
 	if err != nil {
 		return "", "", "", err
 	}
 	defer rows.Close()
-	
+
 	var value string
 	var found bool
 	for rows.Next() {
@@ -106,7 +106,7 @@ func getEntry(db *sql.DB, context string, key string) (string, string, string, e
 	if !found {
 		return "", "", "", fmt.Errorf("no entry found for key: %s in context: %s", key, context)
 	}
-	
+
 	return context, key, value, nil
 }
 
@@ -136,7 +136,7 @@ func deleteEntry(db *sql.DB, context string, key string) error {
 	return nil
 }
 
-func createContext(db *sql.DB, name string) (string, error) {	
+func createContext(db *sql.DB, name string) (string, error) {
 	insertContextSQL := `INSERT INTO context (name) VALUES (?)`
 	_, err := db.Exec(insertContextSQL, name)
 	if err != nil {
@@ -145,14 +145,13 @@ func createContext(db *sql.DB, name string) (string, error) {
 	return name, nil
 }
 
-
 func getContext(db *sql.DB, name string) (string, error) {
 	rows, err := db.Query("SELECT name FROM context WHERE name = ?", name)
 	if err != nil {
 		return "", err
 	}
 	defer rows.Close()
-	
+
 	var value string
 	var found bool
 	for rows.Next() {
@@ -183,7 +182,6 @@ func deleteContext(db *sql.DB, name string) error {
 	return nil
 }
 
-
 func createToken(db *sql.DB) (string, error) {
 	newUUID := uuid.New().String()
 	insertTokenSQL := `INSERT INTO token (token) VALUES (?)`
@@ -200,7 +198,7 @@ func getPermission(db *sql.DB, token string, context string, reqType string) err
 		return err
 	}
 	defer rows.Close()
-	
+
 	var value string
 	var found bool
 	for rows.Next() {
@@ -240,7 +238,7 @@ func grantTokenPermission(db *sql.DB, token string, permission string, context s
 	return token, permission, context, nil
 }
 
-func rovokeTokenPermission(db *sql.DB, token string, permission string, context string) (error) {
+func rovokeTokenPermission(db *sql.DB, token string, permission string, context string) error {
 	deletePermissionSQL := `DELETE FROM permission WHERE token = ? AND permission = ? AND context = ?`
 	result, err := db.Exec(deletePermissionSQL, token, permission, context)
 	if err != nil {
@@ -253,57 +251,54 @@ func rovokeTokenPermission(db *sql.DB, token string, permission string, context 
 	return nil
 }
 
-func createAdmToken(db *sql.DB) error {
-	err := admTokenExists(db)
-	if err != nil {
+func createAdmToken(db *sql.DB) (string, error) {
+	var token string
+	var found bool
+	token, found, _ = admTokenExists(db)
+	
+	if !found {
 		token, err := createToken(db)
 		if err != nil {
-			return err
+			return "", err
 		}
-
 		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_CREATE", "ALL")
 		if err != nil {
-			return err
+			return "", err
 		}
 		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_DELETE", "ALL")
-		
 		if err != nil {
-			return err
+			return "", err
 		}
 		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_GRANT", "ALL")
-		
 		if err != nil {
-			return err
+			return "", err
 		}
 		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_REVOKE", "ALL")
-		
 		if err != nil {
-			return err
+			return "", err
 		}
+		return token, err
 	}
-	return nil
+	return token, nil
 }
 
-func admTokenExists(db *sql.DB) error {
-	rows, err := db.Query("SELECT token FROM permission WHERE permission = 'ADM_TOKEN%'")
+func admTokenExists(db *sql.DB) (string, bool, error) {
+	rows, err := db.Query("SELECT token FROM permission WHERE permission like 'ADM_TOKEN%'")
 	if err != nil {
-		return err
+		return "", false, err
 	}
 	defer rows.Close()
-	
 	var value string
 	var found bool
 	for rows.Next() {
 		err := rows.Scan(&value)
 		if err != nil {
-			return err
+			return "", false, err
 		}
 		found = true
 	}
-
 	if !found {
-		return errors.New("Adm token does not exists.")
+		return "", false, errors.New("Adm token does not exists.")
 	}
-
-	return nil
+	return value, found, nil
 }
