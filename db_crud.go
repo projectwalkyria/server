@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -184,8 +183,9 @@ func deleteContext(db *sql.DB, name string) error {
 
 func createToken(db *sql.DB) (string, error) {
 	newUUID := uuid.New().String()
+	tokenSha := tokenToSha256(newUUID)
 	insertTokenSQL := `INSERT INTO token (token) VALUES (?)`
-	_, err := db.Exec(insertTokenSQL, newUUID)
+	_, err := db.Exec(insertTokenSQL, tokenSha)
 	if err != nil {
 		return "", err
 	}
@@ -193,9 +193,11 @@ func createToken(db *sql.DB) (string, error) {
 }
 
 func getPermission(db *sql.DB, token string, context string, reqType string) error {
+	tokenSha := tokenToSha256(token)
+
 	rows, err := db.Query(
 		"SELECT token FROM permission WHERE token = ? AND context = ? AND permission = ?;",
-		token, context, reqType)
+		tokenSha, context, reqType)
 	if err != nil {
 		return err
 	}
@@ -214,8 +216,10 @@ func getPermission(db *sql.DB, token string, context string, reqType string) err
 }
 
 func deleteToken(db *sql.DB, token string) error {
+	tokenSha := tokenToSha256(token)
+
 	deleteTokenPermissionsSQL := `DELETE FROM permission WHERE token = ?`
-	_, err := db.Exec(deleteTokenPermissionsSQL, token)
+	_, err := db.Exec(deleteTokenPermissionsSQL, tokenSha)
 	if err != nil {
 		return err
 	}
@@ -235,8 +239,10 @@ func deleteToken(db *sql.DB, token string) error {
 }
 
 func grantTokenPermission(db *sql.DB, token string, permission string, context string) (string, string, string, error) {
+	tokenSha := tokenToSha256(token)
+
 	insertPermissionSQL := `INSERT INTO permission (token, permission, context) VALUES (?, ?, ?)`
-	_, err := db.Exec(insertPermissionSQL, token, permission, context)
+	_, err := db.Exec(insertPermissionSQL, tokenSha, permission, context)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -244,8 +250,10 @@ func grantTokenPermission(db *sql.DB, token string, permission string, context s
 }
 
 func rovokeTokenPermission(db *sql.DB, token string, permission string, context string) error {
+	tokenSha := tokenToSha256(token)
+
 	deletePermissionSQL := `DELETE FROM permission WHERE token = ? AND permission = ? AND context = ?`
-	result, err := db.Exec(deletePermissionSQL, token, permission, context)
+	result, err := db.Exec(deletePermissionSQL, tokenSha, permission, context)
 	if err != nil {
 		return err
 	}
@@ -263,34 +271,35 @@ func createAdmToken(db *sql.DB) (string, error) {
 
 	if !found {
 		token, err := createToken(db)
+		tokenSha := tokenToSha256(token)
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_POST", "ALL")
+		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_POST", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_DELETE", "ALL")
+		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_DELETE", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_GRANT", "ALL")
+		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_GRANT", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_REVOKE", "ALL")
+		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_REVOKE", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_POST", "ALL")
+		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_POST", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_GET", "ALL")
+		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_GET", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_DELETE", "ALL")
+		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_DELETE", "ALL")
 		if err != nil {
 			return "", err
 		}
