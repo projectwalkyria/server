@@ -1,6 +1,10 @@
 import requests
 
-# test all endpoints not using auhtentication must to return unauthorized
+# test all endpoints not using authentication headers must to return missing authentication headers
+
+# test all endpoints using the authentication headers with "Authentication: bearer WRONG_TOKEN" must return unauthorized
+
+# test all endpoints using the authentication headers with "Authentication: WRONG_TOKEN" must authentication headers not well written, something like that
 
 # try create a token without the barear token and with a wrong token, must to return unauthorized
 
