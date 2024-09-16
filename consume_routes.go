@@ -42,10 +42,11 @@ func parseConRequest(r *http.Request) (string, string, string, error) {
 		return "", "", "", err
 	}
 
+	context := r.PathValue("id")
+
 	if len(data) == 1 {
 		// Access the first key-value pair (manually in this case, as Go doesn't provide a direct way to access the first element in a map).
 		for key, value := range data {
-			context := r.PathValue("id") // Assuming you're extracting the 'id' from the URL query parameters
 
 			// Assert that `value` is of type `string`. You can also handle other types based on your input.
 			valueStr, ok := value.(string)
@@ -78,16 +79,16 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	err = getPermission(db, authToken, context, "POST")
-	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
-		return
-	}
-
 	context, err = getContext(db, context)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = getPermission(db, authToken, context, "POST")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -118,11 +119,7 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	context, key, value, err := parseConRequest(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	context := r.PathValue("id")
 
 	db, err := connectSQLite()
 	if err != nil {
@@ -133,12 +130,17 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 
 	err = getPermission(db, authToken, context, "PUT")
 	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
-	context, err = getContext(db, context)
+	_, err = getContext(db, context)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
+	context, key, value, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -171,11 +173,7 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	context, _, value, err := parseConRequest(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	context := r.PathValue("id")
 
 	db, err := connectSQLite()
 	if err != nil {
@@ -184,14 +182,19 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	err = getPermission(db, authToken, context, "GET")
+	err = getPermission(db, authToken, context, "PUT")
 	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
-	context, err = getContext(db, context)
+	_, err = getContext(db, context)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
+	context, _, value, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -224,12 +227,8 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-
-	context, _, key, err := parseConRequest(r)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	
+	context := r.PathValue("id")
 
 	db, err := connectSQLite()
 	if err != nil {
@@ -238,14 +237,19 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	err = getPermission(db, authToken, context, "DELETE")
+	_, err = getContext(db, context)
 	if err != nil {
-		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	context, err = getContext(db, context)
+	err = getPermission(db, authToken, context, "PUT")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
 
+	context, _, key, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
