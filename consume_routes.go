@@ -92,24 +92,15 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	context, key, value, err = createEntry(db, context, key, value)
+	_, _, _, err = createEntry(db, context, key, value)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Create a response for success
-	successResponse := map[string]string{
-		"context": context,
-		"key":     key,
-		"value":   value,
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(successResponse)
-
 }
 
 func conPut(w http.ResponseWriter, r *http.Request) {
@@ -146,24 +137,15 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	context, key, value, err = updateEntry(db, context, key, value)
+	_, _, _, err = updateEntry(db, context, key, value)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Create a response for success
-	successResponse := map[string]string{
-		"context": context,
-		"key":     key,
-		"value":   value,
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(successResponse)
-
 }
 
 func conGet(w http.ResponseWriter, r *http.Request) {
