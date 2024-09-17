@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+
 	"github.com/google/uuid"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -265,9 +266,7 @@ func rovokeTokenPermission(db *sql.DB, token string, permission string, context 
 }
 
 func createAdmToken(db *sql.DB) (string, error) {
-	var token string
-	var found bool
-	token, found, _ = admTokenExists(db)
+	_, found, _ := admTokenExists(db)
 
 	if !found {
 		token, err := createToken(db)
@@ -275,37 +274,37 @@ func createAdmToken(db *sql.DB) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_POST", "ALL")
+		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_POST", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_DELETE", "ALL")
+		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_DELETE", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_GRANT", "ALL")
+		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_GRANT", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_REVOKE", "ALL")
+		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_REVOKE", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_POST", "ALL")
+		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_POST", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_GET", "ALL")
+		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_GET", "ALL")
 		if err != nil {
 			return "", err
 		}
-		token, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_DELETE", "ALL")
+		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_DELETE", "ALL")
 		if err != nil {
 			return "", err
 		}
 		return token, err
 	}
-	return token, nil
+	return "", nil
 }
 
 func admTokenExists(db *sql.DB) (string, bool, error) {

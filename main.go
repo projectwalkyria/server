@@ -24,7 +24,11 @@ func main() {
 
 	token, _ = createAdmToken(db)
 
-	fmt.Println("Master adm token : " + token)
+	if token != "" {
+		fmt.Println("Master adm token : " + token)
+	} else {
+		fmt.Println("ADM TOKEN ALREADY CREATED")
+	}
 
 	http.HandleFunc("POST /con/{id}", conPost)
 	http.HandleFunc("PUT /con/{id}", conPut)
@@ -42,5 +46,4 @@ func main() {
 	http.HandleFunc("DELETE /adm/token/revoke", admTokenRevoke)
 
 	log.Fatal(http.ListenAndServe(":53072", nil))
-
 }
