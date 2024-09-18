@@ -163,7 +163,7 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	err = getPermission(db, authToken, context, "PUT")
+	err = getPermission(db, authToken, context, "GET")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
@@ -182,18 +182,16 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var key string
-	context, key, value, err = getEntry(db, context, value)
+	_, key, value, err = getEntry(db, context, value)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "", http.StatusNotFound)
 		return
 	}
 
 	// Create a response for success
 	successResponse := map[string]string{
-		"context": context,
-		"key":     key,
-		"value":   value,
+		key: value,
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -208,7 +206,7 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
-	
+
 	context := r.PathValue("id")
 
 	db, err := connectSQLite()
@@ -230,7 +228,6 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	context, _, key, err := parseConRequest(r)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -246,5 +243,5 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	
+
 }

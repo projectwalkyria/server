@@ -198,7 +198,7 @@ func admContextGet(w http.ResponseWriter, r *http.Request) {
 	context, err = getContext(db, context)
 
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "", http.StatusNotFound)
 		return
 	}
 
@@ -359,6 +359,9 @@ func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// MUST TO ADD VALIDATE TOKEN
+	// HERE
+
 	err = getPermission(db, authToken, "ALL", "ADM_TOKEN_GRANT")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
@@ -372,15 +375,8 @@ func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	successResponse := map[string]string{
-		"token":      token,
-		"permission": grant,
-		"context":    context,
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(successResponse)
 
 }
 

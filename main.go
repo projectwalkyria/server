@@ -36,13 +36,16 @@ func main() {
 	http.HandleFunc("DELETE /con/{id}", conDelete)
 
 	http.HandleFunc("POST /adm/token", admTokenPost)
+	// CREATE : check if adm token exists
 	http.HandleFunc("DELETE /adm/token", admTokenDelete)
 
 	http.HandleFunc("POST /adm/context", admContextPost)
 	http.HandleFunc("GET /adm/context", admContextGet)
+	// CREATE : check contexts, return all contexts
 	http.HandleFunc("DELETE /adm/context", admContextDelete)
 
 	http.HandleFunc("POST /adm/token/grant", admTokenGrant)
+	// CREATE : check a token grant on context
 	http.HandleFunc("DELETE /adm/token/revoke", admTokenRevoke)
 
 	log.Fatal(http.ListenAndServe(":53072", nil))

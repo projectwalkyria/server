@@ -227,7 +227,7 @@ func deleteToken(db *sql.DB, token string) error {
 
 	var result sql.Result
 	deleteTokenSQL := `DELETE FROM token WHERE token = ?`
-	result, err = db.Exec(deleteTokenSQL, token)
+	result, err = db.Exec(deleteTokenSQL, tokenSha)
 	if err != nil {
 		return err
 	}

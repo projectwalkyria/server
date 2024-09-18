@@ -1,6 +1,7 @@
 
 import requests
 import json
+import uuid
 
 
 url = 'http://localhost:53072'
@@ -111,6 +112,7 @@ def createToken(response):
             "STATUS_CODE:" + ("OK" if response.status_code == 201 else "NOK") + " " + 
             "BODY:" + ("OK" if response.text == '{"token":"' + f'{token}'+  '"}\n' else "NOK2")
             )
+    return token
 
 headers = {
     "Content-Type": "application/json",
@@ -150,7 +152,7 @@ print()
 
 # check if the context was created
 print("GET CONTEXT")
-def createContext(response):
+def getContext(response):
     print(
         "----> " + response.request.method + " " + response.request.path_url + " " + 
         "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
@@ -165,25 +167,363 @@ data = {
     "context":f"{context}"
 }
 
-createContext(requests.get(url + "/adm/context", json=data, headers=headers))
+getContext(requests.get(url + "/adm/context", json=data, headers=headers))
 
 print()
+
 # grant POST on token on context
+print("GRANT POST ON TOKEN")
+def grantPost(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 201 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}",
+    "grant":"POST",
+    "context":f"{context}"
+}
+
+grantPost(requests.post(url + "/adm/token/grant", json=data, headers=headers))
+
+print()
 # POST an entry with the token on the context
+print("POST ENTRY WITH TOKEN ON CONTEXT")
+def postEntry(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 201 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {token}"
+}
+entry_key = str(uuid.uuid4())
+entry_value = str(uuid.uuid4())
+data = {
+    entry_key:entry_value
+}
+
+postEntry(requests.post(url + f"/con/{context}", json=data, headers=headers))
+
+print()
+
 # grant GET on token on context and check the entry if it is correct
+print("GRANT GET ON TOKEN")
+def grantGet(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 201 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}",
+    "grant":"GET",
+    "context":f"{context}"
+}
+
+grantGet(requests.post(url + "/adm/token/grant", json=data, headers=headers))
+
+print()
+
+# check if the entry is stored the right way
+print("GET THE ENTRY CREATED")
+def getEntry(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == '{"' + entry_key + '":"' + entry_value + '"}\n' else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {token}"
+}
+data = {
+    "key":entry_key
+}
+
+getEntry(requests.get(url + f"/con/{context}", json=data, headers=headers))
+
+print()
 
 # revoke GET and POST and grant UPDATE on token on context
+print("REVOKE GET ON TOKEN")
+def revokeGet(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}",
+    "grant":"GET",
+    "context":f"{context}"
+}
+
+revokeGet(requests.delete(url + "/adm/token/revoke", json=data, headers=headers))
+
+print()
+
+print("GRANT PUT ON TOKEN")
+def grantPut(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 201 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}",
+    "grant":"PUT",
+    "context":f"{context}"
+}
+
+grantPut(requests.post(url + "/adm/token/grant", json=data, headers=headers))
+
+print()
+
 # UPDATE an entry with the token on the context
+print("UPDATE ENTRY")
+def updateEntry(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {token}"
+}
+entry_new_value = str(uuid.uuid4())
+data = {
+    entry_key:entry_new_value
+}
+
+updateEntry(requests.put(url + f"/con/{context}", json=data, headers=headers))
+
+print()
 # grant GET on token on context and check the entry if it is correct
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}",
+    "grant":"GET",
+    "context":f"{context}"
+}
+
+requests.post(url + "/adm/token/grant", json=data, headers=headers)
+
+print("GET THE ENTRY CREATED")
+def getEntry(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == '{"' + entry_key + '":"' + entry_new_value + '"}\n' else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {token}"
+}
+data = {
+    "key":entry_key
+}
+
+getEntry(requests.get(url + f"/con/{context}", json=data, headers=headers))
+
+print()
 
 # revoke GET, UPDATE and grant DELETE on token on context
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}",
+    "grant":"GET",
+    "context":f"{context}"
+}
+
+revokeGet(requests.delete(url + "/adm/token/revoke", json=data, headers=headers))
+
+print("GRANT DELETE ON TOKEN")
+def grantDelete(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 201 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}",
+    "grant":"DELETE",
+    "context":f"{context}"
+}
+
+grantDelete(requests.post(url + "/adm/token/grant", json=data, headers=headers))
+
+print()
 # DELETE an entry with the token on the context
+print("DELETE ENTRY")
+def deleteEntry(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {token}"
+}
+data = {
+    "key":entry_key
+}
+
+deleteEntry(requests.delete(url + f"/con/{context}", json=data, headers=headers))
+
+print()
+
 # grant GET on token on context and check the entry if it was deleted
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}",
+    "grant":"GET",
+    "context":f"{context}"
+}
+
+requests.post(url + "/adm/token/grant", json=data, headers=headers)
+
+print("GET THE ENTRY DELETED")
+def getEntry(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 404 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "\n" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {token}"
+}
+data = {
+    "key":entry_key
+}
+
+getEntry(requests.get(url + f"/con/{context}", json=data, headers=headers))
+
+print()
 
 # revoke GET of the token on the context
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}",
+    "grant":"GET",
+    "context":f"{context}"
+}
+
+requests.delete(url + "/adm/token/revoke", json=data, headers=headers)
 
 # delete context
+print("DELETE CONTEXT")
+def deleteContext(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "context":f"{context}"
+}
+
+deleteContext(requests.delete(url + "/adm/context", json=data, headers=headers))
+
+print()
+
 # check if the context was deleted
+print("GET CONTEXT")
+def getContext(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 404 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "\n" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "context":f"{context}"
+}
+
+getContext(requests.get(url + "/adm/context", json=data, headers=headers))
+
+print()
 
 # delete token
-# check if the token was deleted
+print("DELETE TOKEN")
+def deleteContext(response):
+    print(response.status_code)
+    print(response.text)
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"{token}"
+}
+
+deleteContext(requests.delete(url + "/adm/token", json=data, headers=headers))
+
+print()
+
+# check if the token was deleted - functionality does not exists yet
+
