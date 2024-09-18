@@ -164,13 +164,8 @@ func admContextPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	successResponse := map[string]string{
-		"context": context,
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(successResponse)
 
 }
 
@@ -269,9 +264,7 @@ func admTokenPost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	encryptedAuthToken := tokenToSha256(authToken)
-
-	err = getPermission(db, encryptedAuthToken, "ALL", "ADM_TOKEN_POST")
+	err = getPermission(db, authToken, "ALL", "ADM_TOKEN_POST")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

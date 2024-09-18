@@ -270,35 +270,34 @@ func createAdmToken(db *sql.DB) (string, error) {
 
 	if !found {
 		token, err := createToken(db)
-		tokenSha := tokenToSha256(token)
 		if err != nil {
 			return "", err
 		}
-		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_POST", "ALL")
+		_, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_POST", "ALL")
 		if err != nil {
 			return "", err
 		}
-		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_DELETE", "ALL")
+		_, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_DELETE", "ALL")
 		if err != nil {
 			return "", err
 		}
-		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_GRANT", "ALL")
+		_, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_GRANT", "ALL")
 		if err != nil {
 			return "", err
 		}
-		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_TOKEN_REVOKE", "ALL")
+		_, _, _, err = grantTokenPermission(db, token, "ADM_TOKEN_REVOKE", "ALL")
 		if err != nil {
 			return "", err
 		}
-		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_POST", "ALL")
+		_, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_POST", "ALL")
 		if err != nil {
 			return "", err
 		}
-		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_GET", "ALL")
+		_, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_GET", "ALL")
 		if err != nil {
 			return "", err
 		}
-		_, _, _, err = grantTokenPermission(db, tokenSha, "ADM_CONTEXT_DELETE", "ALL")
+		_, _, _, err = grantTokenPermission(db, token, "ADM_CONTEXT_DELETE", "ALL")
 		if err != nil {
 			return "", err
 		}
