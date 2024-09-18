@@ -269,7 +269,9 @@ func admTokenPost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	err = getPermission(db, authToken, "ALL", "ADM_TOKEN_POST")
+	encryptedAuthToken := tokenToSha256(authToken)
+
+	err = getPermission(db, encryptedAuthToken, "ALL", "ADM_TOKEN_POST")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

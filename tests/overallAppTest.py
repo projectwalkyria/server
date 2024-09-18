@@ -2,6 +2,7 @@
 import requests
 
 url = 'http://localhost:53072'
+ADM_TOKEN = '41424f7c-51bb-4b1e-8f48-492ac1bf4e88'
 
 # test all endpoints not using authentication headers must to return missing authentication headers
 
@@ -92,6 +93,24 @@ wrongAuthenticationStructure(requests.delete(url + "/adm/context", json=data, he
 print()
 
 # create token
+print("CREATE TOKEN")
+def createToken(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "\n" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "asd":"asd"
+}
+
+createToken(requests.post(url + "/adm/token", json=data, headers=headers))
+
 # check if the token was created
 # create context
 # check if the context was created
