@@ -79,16 +79,15 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	context, err = getContext(db, context)
-
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
-
 	err = getPermission(db, authToken, context, "POST")
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	context, err = getContext(db, context)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -219,17 +218,18 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	err = getPermission(db, authToken, context, "PUT")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	_, err = getContext(db, context)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = getPermission(db, authToken, context, "PUT")
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
-		return
-	}
 
 	context, _, key, err := parseConRequest(r)
 	if err != nil {

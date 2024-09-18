@@ -4,10 +4,14 @@ import requests
 url = 'http://localhost:53072'
 
 # test all endpoints not using authentication headers must to return missing authentication headers
+
+print("ALL ENDPOINTS NOT USING HEADERS AUTHENTICATION")
+
 def noAuthenticationTest(response):
     print(
-        response.request.method + " " + response.request.path_url + " " + 
-        "OK" if response.status_code == 401 and response.text == "authorization header missing\n" else "NOK"
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 401 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "authorization header missing\n" else "NOK")
         )
 
 headers = {
@@ -27,7 +31,35 @@ noAuthenticationTest(requests.post(url + "/adm/context", json=data, headers=head
 noAuthenticationTest(requests.get(url + "/adm/context", json=data, headers=headers))
 noAuthenticationTest(requests.delete(url + "/adm/context", json=data, headers=headers))
 
-# test all endpoints using the authentication headers with "Authentication: bearer WRONG_TOKEN" must return unauthorized
+print()
+
+# test all endpoints using the Authorization headers with "Authorization: bearer WRONG_TOKEN" must return unauthorized
+print("ALL ENDPOINTS THE WRONG TOKEN ON THE HEADER")
+def wrongAuthenticationToken(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 401 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "not authorized\n" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": "bearer ASDASD"
+}
+data = {
+    "asd":"asd"
+}
+
+wrongAuthenticationToken(requests.post(url + "/con/ads", json=data, headers=headers))
+wrongAuthenticationToken(requests.put(url + "/con/ads", json=data, headers=headers))
+wrongAuthenticationToken(requests.get(url + "/con/ads", json=data, headers=headers))
+wrongAuthenticationToken(requests.delete(url + "/con/ads", json=data, headers=headers))
+wrongAuthenticationToken(requests.post(url + "/adm/token", json=data, headers=headers))
+wrongAuthenticationToken(requests.delete(url + "/adm/token", json=data, headers=headers))
+wrongAuthenticationToken(requests.post(url + "/adm/context", json=data, headers=headers))
+wrongAuthenticationToken(requests.get(url + "/adm/context", json=data, headers=headers))
+wrongAuthenticationToken(requests.delete(url + "/adm/context", json=data, headers=headers))
+
 
 # test all endpoints using the authentication headers with "Authentication: WRONG_TOKEN" must authentication headers not well written, something like that
 
