@@ -62,7 +62,7 @@ func parseConRequest(r *http.Request) (string, string, string, error) {
 func conPost(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -106,7 +106,7 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 func conPut(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -151,7 +151,7 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 func conGet(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -206,7 +206,7 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 func conDelete(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 	
@@ -246,5 +246,5 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
+	
 }

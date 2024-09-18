@@ -129,7 +129,7 @@ func validateGrant(grant string) error {
 func admContextPost(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -177,7 +177,7 @@ func admContextPost(w http.ResponseWriter, r *http.Request) {
 func admContextGet(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -220,7 +220,7 @@ func admContextGet(w http.ResponseWriter, r *http.Request) {
 func admContextDelete(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -258,7 +258,7 @@ func admContextDelete(w http.ResponseWriter, r *http.Request) {
 func admTokenPost(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -296,7 +296,7 @@ func admTokenPost(w http.ResponseWriter, r *http.Request) {
 func admTokenDelete(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -334,7 +334,7 @@ func admTokenDelete(w http.ResponseWriter, r *http.Request) {
 func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
@@ -392,7 +392,7 @@ func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
