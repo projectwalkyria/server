@@ -157,7 +157,7 @@ func admContextPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	context, err = createContext(db, context)
+	_, err = createContext(db, context)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
