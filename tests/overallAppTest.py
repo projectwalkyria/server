@@ -60,31 +60,58 @@ wrongAuthenticationToken(requests.post(url + "/adm/context", json=data, headers=
 wrongAuthenticationToken(requests.get(url + "/adm/context", json=data, headers=headers))
 wrongAuthenticationToken(requests.delete(url + "/adm/context", json=data, headers=headers))
 
+print()
 
 # test all endpoints using the authentication headers with "Authentication: WRONG_TOKEN" must authentication headers not well written, something like that
+print("ALL ENDPOINTS WITH THE WRONG AUTHENTICATION TOKEN STRUCTURE")
+def wrongAuthenticationStructure(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 401 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "invalid Authorization header format\n" else "NOK")
+        )
 
-# try create a token without the barear token and with a wrong token, must to return unauthorized
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": "ASDASD"
+}
+data = {
+    "asd":"asd"
+}
 
-# try create a token with the correct bearer token, must retun created
+wrongAuthenticationStructure(requests.post(url + "/con/ads", json=data, headers=headers))
+wrongAuthenticationStructure(requests.put(url + "/con/ads", json=data, headers=headers))
+wrongAuthenticationStructure(requests.get(url + "/con/ads", json=data, headers=headers))
+wrongAuthenticationStructure(requests.delete(url + "/con/ads", json=data, headers=headers))
+wrongAuthenticationStructure(requests.post(url + "/adm/token", json=data, headers=headers))
+wrongAuthenticationStructure(requests.delete(url + "/adm/token", json=data, headers=headers))
+wrongAuthenticationStructure(requests.post(url + "/adm/context", json=data, headers=headers))
+wrongAuthenticationStructure(requests.get(url + "/adm/context", json=data, headers=headers))
+wrongAuthenticationStructure(requests.delete(url + "/adm/context", json=data, headers=headers))
 
-# try create a context without the barear token and with a wrong token, must to return unauthorized
+print()
 
-# try create a context with the correct bearer token must return created
+# create token
+# check if the token was created
+# create context
+# check if the context was created
 
-# try delete a token without the barear token and with a wrong token, must to return unauthorized
+# grant POST on token on context
+# POST an entry with the token on the context
+# grant GET on token on context and check the entry if it is correct
 
-# try delete a context without the barear token and with a wrong token, must to return unauthorized
+# revoke GET and POST and grant UPDATE on token on context
+# UPDATE an entry with the token on the context
+# grant GET on token on context and check the entry if it is correct
 
-# try to use the token created to insert entries on the context must to return unauthorized
+# revoke GET, UPDATE and grant DELETE on token on context
+# DELETE an entry with the token on the context
+# grant GET on token on context and check the entry if it was deleted
 
-# grant the privilege to write on the context and test create read write and delete on the context, everything but write must to return unauthorized
+# revoke GET of the token on the context
 
-# revoke the privilege to write and give the token the privilege to read, everything but read must to return unauthorized
+# delete context
+# check if the context was deleted
 
-# revoke the privilege to read and give the token the privilege to update, everything but update must to return unauthorized
-
-# revoke the privilege to write and give the token the privilege to delete, everything but delete must to return unauthorized
-
-# try delete a token with the correct bearer token, must retun deleted
-
-# try delete a context with the correct bearer token must return deleted
+# delete token
+# check if the token was deleted
