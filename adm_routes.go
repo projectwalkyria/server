@@ -164,6 +164,13 @@ func admContextPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	err = createContextDataTable(db, context)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
@@ -239,6 +246,13 @@ func admContextDelete(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = deleteContext(db, context)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err = deleteContextDataTable(db, context)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)

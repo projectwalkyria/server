@@ -13,9 +13,7 @@ func main() {
 		log.Fatal(err)
 	}
 	defer db.Close()
-	// Create Table
 
-	createEntryTable(db)
 	createContextTable(db)
 	createTokenTable(db)
 	createPermissionTable(db)

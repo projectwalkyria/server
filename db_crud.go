@@ -19,21 +19,26 @@ func connectSQLite() (*sql.DB, error) {
 	return db, nil
 }
 
-func createEntryTable(db *sql.DB) {
-	logStuff("creating entry table.")
-	createTableSQL := `CREATE TABLE IF NOT EXISTS entry (
-		context TEXT,
-		key TEXT,
-		value TEXT,
-		UNIQUE (context, key)
-	);`
+func createContextDataTable(db *sql.DB, context string) error {
+	logStuff("creating context " + context + " table.")
+	createTableSQL := "CREATE TABLE IF NOT EXISTS " + context + " (key TEXT UNIQUE,value TEXT);"
 
 	_, err := db.Exec(createTableSQL)
 	if err != nil {
 		log.Fatal(err)
 	}
+	return nil
+}
 
-	fmt.Println("Table entry created successfully!")
+func deleteContextDataTable(db *sql.DB, context string) error {
+	logStuff("deleting context " + context + " table.")
+	createTableSQL := "DROP TABLE "+ context +";"
+
+	_, err := db.Exec(createTableSQL, context)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return nil
 }
 
 func createContextTable(db *sql.DB) {
@@ -82,8 +87,8 @@ func createPermissionTable(db *sql.DB) {
 }
 
 func createEntry(db *sql.DB, context string, key string, value string) (string, string, string, error) {
-	insertEntrySQL := `INSERT INTO entry(key, value, context) VALUES (?, ?, ?)`
-	_, err := db.Exec(insertEntrySQL, key, value, context)
+	insertEntrySQL := "INSERT INTO " + context + ` (key, value) VALUES (?, ?)`
+	_, err := db.Exec(insertEntrySQL, key, value)
 	if err != nil {
 		logStuff("error on creating entry {" + key + ":" + value + "} on context: " + context)
 		logStuff(err.Error())
@@ -94,17 +99,19 @@ func createEntry(db *sql.DB, context string, key string, value string) (string, 
 }
 
 func getEntry(db *sql.DB, context string, key string) (string, string, string, error) {
-	rows, err := db.Query("SELECT context, key, value FROM entry WHERE key = ? AND context = ?", key, context)
+	logStuff("Searching for key " + key + " on context " + context)
+	rows, err := db.Query("SELECT value FROM " + context + " WHERE key = '" + key + "';")
 	if err != nil {
+		logStuff("error " + err.Error())
 		return "", "", "", err
 	}
 	defer rows.Close()
-
 	var value string
 	var found bool
 	for rows.Next() {
-		err := rows.Scan(&context, &key, &value)
+		err := rows.Scan(&value)
 		if err != nil {
+			logStuff("no entry found for key " + key + " con context " + context)
 			return "", "", "", err
 		}
 		found = true
@@ -120,8 +127,8 @@ func getEntry(db *sql.DB, context string, key string) (string, string, string, e
 }
 
 func updateEntry(db *sql.DB, context string, key string, value string) (string, string, string, error) {
-	updateEntrySQL := `UPDATE entry SET value = ? WHERE context = ? AND key = ?`
-	result, err := db.Exec(updateEntrySQL, value, context, key)
+	updateEntrySQL := "UPDATE " + context + ` SET value = ? WHERE key = ?`
+	result, err := db.Exec(updateEntrySQL, value, key)
 	if err != nil {
 		return "", "", "", err
 	}
@@ -135,8 +142,8 @@ func updateEntry(db *sql.DB, context string, key string, value string) (string, 
 }
 
 func deleteEntry(db *sql.DB, context string, key string) error {
-	deleteEntrySQL := `DELETE FROM entry WHERE context = ? AND key = ?`
-	result, err := db.Exec(deleteEntrySQL, context, key)
+	deleteEntrySQL := "DELETE FROM " + context + ` WHERE key = ?`
+	result, err := db.Exec(deleteEntrySQL, key)
 	if err != nil {
 		logStuff("error on deleting entry " + key + " from context " + context)
 		return err
