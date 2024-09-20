@@ -20,6 +20,7 @@ func connectSQLite() (*sql.DB, error) {
 }
 
 func createEntryTable(db *sql.DB) {
+	logStuff("creating entry table.")
 	createTableSQL := `CREATE TABLE IF NOT EXISTS entry (
 		context TEXT,
 		key TEXT,
@@ -36,6 +37,7 @@ func createEntryTable(db *sql.DB) {
 }
 
 func createContextTable(db *sql.DB) {
+	logStuff("creating context table")
 	createTableSQL := `CREATE TABLE IF NOT EXISTS context (
 		name TEXT UNIQUE
 	);`
@@ -49,6 +51,7 @@ func createContextTable(db *sql.DB) {
 }
 
 func createTokenTable(db *sql.DB) {
+	logStuff("create token table")
 	createTableSQL := `CREATE TABLE IF NOT EXISTS token (
 		token TEXT UNIQUE
 	);`
@@ -62,6 +65,7 @@ func createTokenTable(db *sql.DB) {
 }
 
 func createPermissionTable(db *sql.DB) {
+	logStuff("create permission table")
 	createTableSQL := `CREATE TABLE IF NOT EXISTS permission (
 		token TEXT,
 		permission TEXT,
@@ -81,8 +85,11 @@ func createEntry(db *sql.DB, context string, key string, value string) (string, 
 	insertEntrySQL := `INSERT INTO entry(key, value, context) VALUES (?, ?, ?)`
 	_, err := db.Exec(insertEntrySQL, key, value, context)
 	if err != nil {
+		logStuff("error on creating entry {" + key + ":" + value + "} on context: " + context)
+		logStuff(err.Error())
 		return "", "", "", err
 	}
+	logStuff("creating entry {" + key + ":" + value + "} on context: " + context)
 	return context, key, value, nil
 }
 
@@ -104,9 +111,11 @@ func getEntry(db *sql.DB, context string, key string) (string, string, string, e
 	}
 
 	if !found {
+		logStuff("error on returning entry " + key + " from context " + context)
 		return "", "", "", fmt.Errorf("no entry found for key: %s in context: %s", key, context)
 	}
 
+	logStuff("returning entry " + key + " from context " + context)
 	return context, key, value, nil
 }
 
@@ -118,8 +127,10 @@ func updateEntry(db *sql.DB, context string, key string, value string) (string, 
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
+		logStuff("error on updating entry " + key + " with value " + value + " on context :" + context)
 		return "", "", "", errors.New("key-value pair doesn't exists")
 	}
+	logStuff("updating entry " + key + " with value " + value + " on context :" + context)
 	return context, key, value, nil
 }
 
@@ -127,12 +138,15 @@ func deleteEntry(db *sql.DB, context string, key string) error {
 	deleteEntrySQL := `DELETE FROM entry WHERE context = ? AND key = ?`
 	result, err := db.Exec(deleteEntrySQL, context, key)
 	if err != nil {
+		logStuff("error on deleting entry " + key + " from context " + context)
 		return err
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
+		logStuff("error on deleting entry " + key + " from context " + context)
 		return errors.New("key-value pair doesn't exists")
 	}
+	logStuff("deleting entry " + key + " from context " + context)
 	return nil
 }
 
@@ -140,14 +154,17 @@ func createContext(db *sql.DB, name string) (string, error) {
 	insertContextSQL := `INSERT INTO context (name) VALUES (?)`
 	_, err := db.Exec(insertContextSQL, name)
 	if err != nil {
+		logStuff("error on creating context " + name)
 		return "", err
 	}
+	logStuff("creating context " + name)
 	return name, nil
 }
 
 func getContext(db *sql.DB, name string) (string, error) {
 	rows, err := db.Query("SELECT name FROM context WHERE name = ?", name)
 	if err != nil {
+		logStuff("error on returning context " + name)
 		return "", err
 	}
 	defer rows.Close()
@@ -163,9 +180,11 @@ func getContext(db *sql.DB, name string) (string, error) {
 	}
 
 	if !found {
+		logStuff("error on returning context " + name)
 		return "", fmt.Errorf("no context : %s", name)
 	}
 
+	logStuff("returning context " + name)
 	return value, nil
 }
 
@@ -173,12 +192,15 @@ func deleteContext(db *sql.DB, name string) error {
 	deleteContextSQL := `DELETE FROM context WHERE name = ?`
 	result, err := db.Exec(deleteContextSQL, name)
 	if err != nil {
+		logStuff("error on deleting context " + name)
 		return err
 	}
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
+		logStuff("error on deleting context " + name)
 		return errors.New("context doesn't exists")
 	}
+	logStuff("deleting context " + name)
 	return nil
 }
 
@@ -188,8 +210,10 @@ func createToken(db *sql.DB) (string, error) {
 	insertTokenSQL := `INSERT INTO token (token) VALUES (?)`
 	_, err := db.Exec(insertTokenSQL, tokenSha)
 	if err != nil {
+		logStuff("error on creating token")
 		return "", err
 	}
+	logStuff("creating token")
 	return newUUID, nil
 }
 
@@ -200,6 +224,7 @@ func getPermission(db *sql.DB, token string, context string, reqType string) err
 		"SELECT token FROM permission WHERE token = ? AND context = ? AND permission = ?;",
 		tokenSha, context, reqType)
 	if err != nil {
+		logStuff("error on checking permission for context " + context)
 		return err
 	}
 	defer rows.Close()
@@ -210,9 +235,10 @@ func getPermission(db *sql.DB, token string, context string, reqType string) err
 	}
 
 	if !found {
+		logStuff("error on checking permission for context " + context)
 		return errors.New("not authorized")
 	}
-
+	logStuff("checking permission for context " + context)
 	return nil
 }
 
@@ -229,13 +255,17 @@ func deleteToken(db *sql.DB, token string) error {
 	deleteTokenSQL := `DELETE FROM token WHERE token = ?`
 	result, err = db.Exec(deleteTokenSQL, tokenSha)
 	if err != nil {
+		logStuff("error on deleting token")
 		return err
 	}
 
 	rowsAffected, _ := result.RowsAffected()
 	if rowsAffected == 0 {
+		logStuff("error on deleting token")
 		return errors.New("token doesn't exists")
 	}
+
+	logStuff("deleting token")
 	return nil
 }
 
@@ -245,8 +275,10 @@ func grantTokenPermission(db *sql.DB, token string, permission string, context s
 	insertPermissionSQL := `INSERT INTO permission (token, permission, context) VALUES (?, ?, ?)`
 	_, err := db.Exec(insertPermissionSQL, tokenSha, permission, context)
 	if err != nil {
+		logStuff("error on granting permission on context " + context + " for token")
 		return "", "", "", err
 	}
+	logStuff("granting permission on context " + context + " for token")
 	return token, permission, context, nil
 }
 
@@ -256,8 +288,11 @@ func rovokeTokenPermission(db *sql.DB, token string, permission string, context 
 	deletePermissionSQL := `DELETE FROM permission WHERE token = ? AND permission = ? AND context = ?`
 	_, err := db.Exec(deletePermissionSQL, tokenSha, permission, context)
 	if err != nil {
+		logStuff("error on revoking permission of a token from the context " + context)
 		return err
 	}
+
+	logStuff("revoking permission of a token from the context " + context)
 	return nil
 }
 
@@ -328,6 +363,7 @@ func getToken(db *sql.DB, token string) error {
 
 	rows, err := db.Query("SELECT token FROM token WHERE token = ? ", tokenSha)
 	if err != nil {
+		logStuff("error on checking if token exists")
 		return err
 	}
 	defer rows.Close()
@@ -338,8 +374,10 @@ func getToken(db *sql.DB, token string) error {
 	}
 
 	if !found {
+		logStuff("error on checking if token exists")
 		return errors.New("token not exists")
 	}
 
+	logStuff("checking if token exists")
 	return nil
 }
