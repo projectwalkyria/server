@@ -254,13 +254,9 @@ func rovokeTokenPermission(db *sql.DB, token string, permission string, context 
 	tokenSha := tokenToSha256(token)
 
 	deletePermissionSQL := `DELETE FROM permission WHERE token = ? AND permission = ? AND context = ?`
-	result, err := db.Exec(deletePermissionSQL, tokenSha, permission, context)
+	_, err := db.Exec(deletePermissionSQL, tokenSha, permission, context)
 	if err != nil {
 		return err
-	}
-	rowsAffected, _ := result.RowsAffected()
-	if rowsAffected == 0 {
-		return errors.New("token doesn't exists")
 	}
 	return nil
 }
@@ -325,4 +321,25 @@ func admTokenExists(db *sql.DB) (string, bool, error) {
 		return "", false, errors.New("adm token does not exists")
 	}
 	return value, found, nil
+}
+
+func getToken(db *sql.DB, token string) error {
+	tokenSha := tokenToSha256(token)
+
+	rows, err := db.Query("SELECT token FROM token WHERE token = ? ", tokenSha)
+	if err != nil {
+		return err
+	}
+	defer rows.Close()
+
+	var found bool
+	for rows.Next() {
+		found = true
+	}
+
+	if !found {
+		return errors.New("token not exists")
+	}
+
+	return nil
 }

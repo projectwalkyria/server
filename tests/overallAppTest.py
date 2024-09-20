@@ -102,6 +102,12 @@ def createToken(response):
         token = json.loads(response.text)['token']
     except:
         print(
+            response.status_code
+        )
+        print(
+            response.text
+        )
+        print(
             "----> " + response.request.method + " " + response.request.path_url + " " + 
             "STATUS_CODE:" + ("OK" if response.status_code == 201 else "NOK") + " " + 
             "BODY:NOK1"
@@ -460,6 +466,52 @@ data = {
 
 requests.delete(url + "/adm/token/revoke", json=data, headers=headers)
 
+# post token grant with a non valid token to grant
+print("TRY TO GRANT A NON EXISTANT TOKEN")
+def grantNonExistantToken(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 400 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "token not exists\n" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"asdasd",
+    "grant":"POST",
+    "context":f"{context}"
+}
+
+grantNonExistantToken(requests.post(url + "/adm/token/grant", json=data, headers=headers))
+
+print()
+
+# delete token grant with a non valid token to grant
+print("TRY TO REVOKE A NON EXISTANT TOKEN")
+def grantNonExistantToken(response):
+    print(
+        "----> " + response.request.method + " " + response.request.path_url + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 400 else "NOK") + " " + 
+        "BODY:" + ("OK" if response.text == "token not exists\n" else "NOK")
+        )
+
+headers = {
+    "Content-Type": "application/json",
+    "Authorization": f"bearer {ADM_TOKEN}"
+}
+data = {
+    "token":f"asdasd",
+    "grant":"POST",
+    "context":f"{context}"
+}
+
+grantNonExistantToken(requests.delete(url + "/adm/token/revoke", json=data, headers=headers))
+
+print()
+
 # delete context
 print("DELETE CONTEXT")
 def deleteContext(response):
@@ -526,4 +578,3 @@ deleteContext(requests.delete(url + "/adm/token", json=data, headers=headers))
 print()
 
 # check if the token was deleted - functionality does not exists yet
-

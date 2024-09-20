@@ -352,6 +352,12 @@ func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
+	err = getPermission(db, authToken, "ALL", "ADM_TOKEN_GRANT")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
 	context, err = getContext(db, context)
 
 	if err != nil {
@@ -359,16 +365,13 @@ func admTokenGrant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// MUST TO ADD VALIDATE TOKEN
-	// HERE
-
-	err = getPermission(db, authToken, "ALL", "ADM_TOKEN_GRANT")
+	err = getToken(db, token)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	token, grant, context, err = grantTokenPermission(db, token, grant, context)
+	_, _, _, err = grantTokenPermission(db, token, grant, context)
 
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
@@ -406,16 +409,22 @@ func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
 	}
 	defer db.Close()
 
-	context, err = getContext(db, context)
+	err = getPermission(db, authToken, "ALL", "ADM_TOKEN_REVOKE")
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
 
+	err = getToken(db, token)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err = getPermission(db, authToken, "ALL", "ADM_TOKEN_REVOKE")
+	context, err = getContext(db, context)
+
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusUnauthorized)
+		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
@@ -428,5 +437,4 @@ func admTokenRevoke(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
 }
