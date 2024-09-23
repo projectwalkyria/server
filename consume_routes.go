@@ -137,48 +137,64 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// conPut handles HTTP PUT requests to update an existing entry in the database.
 func conPut(w http.ResponseWriter, r *http.Request) {
+	// Extract the authorization token from the request header.
 	authToken, err := getHeaderAuthToken(r)
+	// If the token is missing or invalid, return a 401 Unauthorized error.
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
+	// Extract the context (id) from the request path.
 	context := r.PathValue("id")
 
+	// Establish a connection to the SQLite database.
 	db, err := connectSQLite()
+	// If the connection to the database fails, return a 400 Bad Request error.
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	// Ensure the database connection is closed when the function completes.
 	defer db.Close()
 
+	// Verify that the authenticated user has permission to perform the PUT operation in the given context.
 	err = getPermission(db, authToken, context, "PUT")
+	// If the user lacks the necessary permissions, return a 401 Unauthorized error.
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
+	// Retrieve and verify the actual context from the database.
 	_, err = getContext(db, context)
+	// If the context is invalid or not found, return a 400 Bad Request error.
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Parse the context, key, and value from the request body.
 	context, key, value, err := parseConRequest(r)
+	// If the request body is invalid or improperly formatted, return a 400 Bad Request error.
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Update the existing entry in the database using the context, key, and value.
 	_, _, _, err = updateEntry(db, context, key, value)
-
+	// If the entry update fails, return a 400 Bad Request error.
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Set the response header to indicate the content type is JSON.
 	w.Header().Set("Content-Type", "application/json")
+	// Respond with a 200 OK status code, indicating that the entry was successfully updated.
 	w.WriteHeader(http.StatusOK)
 }
 
