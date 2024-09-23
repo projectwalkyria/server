@@ -198,101 +198,127 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
 
+// conGet handles GET requests to retrieve a specific entry.
 func conGet(w http.ResponseWriter, r *http.Request) {
+	// Extract the authorization token from the request header.
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
+		// If there's an error, respond with an unauthorized status.
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
+	// Get the context ID from the request path.
 	context := r.PathValue("id")
 
+	// Connect to the SQLite database.
 	db, err := connectSQLite()
 	if err != nil {
+		// If there's an error, respond with a bad request status.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer db.Close()
+	defer db.Close() // Ensure the database connection is closed.
 
+	// Check if the user has permission to perform the GET operation.
 	err = getPermission(db, authToken, context, "GET")
 	if err != nil {
+		// If there's an error, respond with an unauthorized status.
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
+	// Retrieve the context from the database.
 	_, err = getContext(db, context)
 	if err != nil {
+		// If there's an error, respond with a bad request status.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Parse the request to get the context and value.
 	context, _, value, err := parseConRequest(r)
 	if err != nil {
+		// If there's an error, respond with a bad request status.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	var key string
+	// Retrieve the entry from the database.
 	_, key, value, err = getEntry(db, context, value)
-
 	if err != nil {
+		// If there's an error, respond with a not found status.
 		http.Error(w, "", http.StatusNotFound)
 		return
 	}
 
-	// Create a response for success
+	// Create a response map with the retrieved key-value pair.
 	successResponse := map[string]string{
 		key: value,
 	}
 
+	// Set the response header to JSON and respond with the success response.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(successResponse)
-
 }
 
+// conDelete handles DELETE requests to remove a specific entry.
 func conDelete(w http.ResponseWriter, r *http.Request) {
+	// Extract the authorization token from the request header.
 	authToken, err := getHeaderAuthToken(r)
 	if err != nil {
+		// If there's an error, respond with an unauthorized status.
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
+	// Get the context ID from the request path.
 	context := r.PathValue("id")
 
+	// Connect to the SQLite database.
 	db, err := connectSQLite()
 	if err != nil {
+		// If there's an error, respond with a bad request status.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	defer db.Close()
+	defer db.Close() // Ensure the database connection is closed.
 
+	// Check if the user has permission to perform the DELETE operation.
 	err = getPermission(db, authToken, context, "PUT")
 	if err != nil {
+		// If there's an error, respond with an unauthorized status.
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return
 	}
 
+	// Retrieve the context from the database.
 	_, err = getContext(db, context)
 	if err != nil {
+		// If there's an error, respond with a bad request status.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Parse the request to get the context and key.
 	context, _, key, err := parseConRequest(r)
 	if err != nil {
+		// If there's an error, respond with a bad request status.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Delete the entry from the database.
 	err = deleteEntry(db, context, key)
-
 	if err != nil {
+		// If there's an error, respond with a bad request status.
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Set the response header to JSON and respond with a success status.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-
 }
