@@ -5,7 +5,7 @@ import uuid
 
 
 url = 'http://localhost:53072'
-ADM_TOKEN = '034fbd14-0792-46bd-8cdd-7619282d0246'
+ADM_TOKEN = '102d2ce3-a9c0-4910-a05d-405d0adc4b1d'
 
 # test all endpoints not using authentication headers must to return missing authentication headers
 
@@ -472,7 +472,7 @@ def grantNonExistantToken(response):
     print(
         "----> " + response.request.method + " " + response.request.path_url + " " + 
         "STATUS_CODE:" + ("OK" if response.status_code == 400 else "NOK") + " " + 
-        "BODY:" + ("OK" if response.text == "token not exists\n" else "NOK")
+        "BODY:" + ("OK" if response.text == "token does not exist\n" else "NOK")
         )
 
 headers = {
@@ -495,7 +495,7 @@ def grantNonExistantToken(response):
     print(
         "----> " + response.request.method + " " + response.request.path_url + " " + 
         "STATUS_CODE:" + ("OK" if response.status_code == 400 else "NOK") + " " + 
-        "BODY:" + ("OK" if response.text == "token not exists\n" else "NOK")
+        "BODY:" + ("OK" if response.text == "token does not exist\n" else "NOK")
         )
 
 headers = {
