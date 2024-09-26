@@ -3,8 +3,9 @@ import requests
 import json
 import uuid
 
-
-url = 'http://localhost:53072'
+hostname = input('Type the server hostname > ').strip()
+port = input('Type the server port > ').strip()
+url = f'http://{hostname}:{port}'
 ADM_TOKEN = input("Type ADM Token > ").strip()
 
 # test all endpoints not using authentication headers must to return missing authentication headers
