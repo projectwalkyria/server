@@ -5,7 +5,7 @@ import uuid
 
 
 url = 'http://localhost:53072'
-ADM_TOKEN = '102d2ce3-a9c0-4910-a05d-405d0adc4b1d'
+ADM_TOKEN = input("Type ADM Token > ").strip()
 
 # test all endpoints not using authentication headers must to return missing authentication headers
 
