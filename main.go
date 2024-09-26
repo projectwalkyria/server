@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"flag"
+	"strconv"
 )
 
-func main() {
+func main() {	
 	// Connect to SQLite
 	db, err := connectSQLite() // For SQLite
 	if err != nil {
@@ -46,5 +48,17 @@ func main() {
 	// CREATE : check a token grant on context
 	http.HandleFunc("DELETE /adm/token/revoke", admTokenRevoke)
 
-	log.Fatal(http.ListenAndServe(":53072", nil))
+	// Define a flag named "port" with a default value of 8080 and a description.
+	port := flag.Int("port", 53072, "Define the port number")
+	
+	// Parse the flags
+	flag.Parse()
+
+	// Convert the port (integer) to a string
+	portStr := strconv.Itoa(*port)
+
+	// Use the port value
+	fmt.Printf("Server will start on port: %d\n", *port)	
+
+	log.Fatal(http.ListenAndServe(":" + portStr, nil))
 }
