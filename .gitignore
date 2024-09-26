@@ -4,3 +4,5 @@ main
 *.data
 *.sh
 *.sqlite3-journal
+*.exe
+*.bin
