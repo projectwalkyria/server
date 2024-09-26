@@ -13,6 +13,11 @@ https://walkyria.io
 - v0.1.0-alpha better testing, default port and port selection using -p or --port on executing.
 
 # Building Walkyria from source
+## Windows
 ```
 go build -o 'YourBinaryName' .\main.go .\adm_routes.go .\consume_routes.go .\db_crud.go .\general_funcions.go
+```
+## Linux
+```
+go build -o 'YourBinaryName' ./main.go ./adm_routes.go ./consume_routes.go ./db_crud.go ./general_funcions.go
 ```
