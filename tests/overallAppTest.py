@@ -401,7 +401,7 @@ print("DELETE ENTRY")
 def deleteEntry(response):
     print(
         "----> " + response.request.method + " " + response.request.path_url + " " + 
-        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
+        "STATUS_CODE:" + ("OK" if response.status_code == 204 else "NOK") + " " + 
         "BODY:" + ("OK" if response.text == "" else "NOK")
         )
 
