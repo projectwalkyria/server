@@ -203,10 +203,15 @@ print()
 # POST an entry with the token on the context
 print("POST ENTRY WITH TOKEN ON CONTEXT")
 def postEntry(response):
+    responseJSON= json.loads(response.text)
     print(
         "----> " + response.request.method + " " + response.request.path_url + " " + 
         "STATUS_CODE:" + ("OK" if response.status_code == 201 else "NOK") + " " + 
-        "BODY:" + ("OK" if response.text == "" else "NOK")
+        "BODY:" + ("OK" if responseJSON['context'] == context 
+                        and responseJSON['key'] == entry_key 
+                        and responseJSON['value'] == entry_value 
+                        and responseJSON['status'] == 'created' 
+                        else "NOK")
         )
 
 headers = {
@@ -249,10 +254,14 @@ print()
 # check if the entry is stored the right way
 print("GET THE ENTRY CREATED")
 def getEntry(response):
+    responseJSON= json.loads(response.text)
     print(
         "----> " + response.request.method + " " + response.request.path_url + " " + 
         "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
-        "BODY:" + ("OK" if response.text == '{"' + entry_key + '":"' + entry_value + '"}\n' else "NOK")
+        "BODY:" + ("OK" if responseJSON['key'] == entry_key 
+                        and responseJSON['value'] == entry_value 
+                        and responseJSON['context'] == context 
+                        else "NOK")
         )
 
 headers = {
@@ -315,10 +324,15 @@ print()
 # UPDATE an entry with the token on the context
 print("UPDATE ENTRY")
 def updateEntry(response):
+    responseJSON= json.loads(response.text)
     print(
         "----> " + response.request.method + " " + response.request.path_url + " " + 
         "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
-        "BODY:" + ("OK" if response.text == "" else "NOK")
+        "BODY:" + ("OK" if responseJSON['context'] == context 
+                        and responseJSON['key'] == entry_key 
+                        and responseJSON['value'] == entry_new_value 
+                        and responseJSON['status'] == 'updated' 
+                        else "NOK")
         )
 
 headers = {
@@ -345,24 +359,6 @@ data = {
 }
 
 requests.post(url + "/adm/token/grant", json=data, headers=headers)
-
-print("GET THE ENTRY CREATED")
-def getEntry(response):
-    print(
-        "----> " + response.request.method + " " + response.request.path_url + " " + 
-        "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 
-        "BODY:" + ("OK" if response.text == '{"' + entry_key + '":"' + entry_new_value + '"}\n' else "NOK")
-        )
-
-headers = {
-    "Content-Type": "application/json",
-    "Authorization": f"bearer {token}"
-}
-data = {
-    "key":entry_key
-}
-
-getEntry(requests.get(url + f"/con/{context}", json=data, headers=headers))
 
 print()
 
@@ -558,8 +554,6 @@ print()
 # delete token
 print("DELETE TOKEN")
 def deleteContext(response):
-    print(response.status_code)
-    print(response.text)
     print(
         "----> " + response.request.method + " " + response.request.path_url + " " + 
         "STATUS_CODE:" + ("OK" if response.status_code == 200 else "NOK") + " " + 

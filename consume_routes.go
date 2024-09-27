@@ -130,11 +130,19 @@ func conPost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	
+	successResponse := map[string]string{
+		"key":key,
+		"value":value,
+		"context":context,
+		"status":"created",
+	}
 
-	// Set the response header to indicate the content type is JSON.
+	// Set the response header to JSON and respond with the success response.
 	w.Header().Set("Content-Type", "application/json")
-	// Respond with a 201 Created status code, indicating that the entry was successfully created.
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(successResponse)
+
 }
 
 // conPut handles HTTP PUT requests to update an existing entry in the database.
@@ -192,10 +200,18 @@ func conPut(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Set the response header to indicate the content type is JSON.
+	successResponse := map[string]string{
+		"key":key,
+		"value":value,
+		"context":context,
+		"status":"updated",
+	}
+
+	// Set the response header to JSON and respond with the success response.
 	w.Header().Set("Content-Type", "application/json")
-	// Respond with a 200 OK status code, indicating that the entry was successfully updated.
 	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(successResponse)
+
 }
 
 // conGet handles GET requests to retrieve a specific entry.
@@ -255,7 +271,9 @@ func conGet(w http.ResponseWriter, r *http.Request) {
 
 	// Create a response map with the retrieved key-value pair.
 	successResponse := map[string]string{
-		key: value,
+		"key":key,
+		"value":value,
+		"context":context,
 	}
 
 	// Set the response header to JSON and respond with the success response.
@@ -320,5 +338,5 @@ func conDelete(w http.ResponseWriter, r *http.Request) {
 
 	// Set the response header to JSON and respond with a success status.
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
